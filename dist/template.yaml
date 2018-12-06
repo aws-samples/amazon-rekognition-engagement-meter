@@ -1,0 +1,256 @@
+AWSTemplateFormatVersion: 2010-09-09
+Globals:
+  Api:
+    Cors:
+      AllowHeaders: '''*'''
+      AllowMethods: '''*'''
+      AllowOrigin: '''*'''
+  Function:
+    Environment:
+      Variables:
+        API_GATEWAY:
+          Fn::Sub: https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD
+        COGNITO_IDENTITY_POOL:
+          Ref: cognitoIdentityPool
+        COLLECTION_ID:
+          Fn::Sub: ${CollectionId}
+        FROM_BUCKET: matteo-rekognition-demo-test
+        REGION:
+          Fn::Sub: ${AWS::Region}
+        TO_BUCKET:
+          Ref: clientS3Bucket
+Parameters:
+  CollectionId:
+    AllowedPattern: ^[a-zA-Z0-9_]*$
+    Default: RekogDemo
+    Type: String
+Resources:
+  DbReadRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            Effect: Allow
+            Resource:
+            - Fn::GetAtt:
+              - facesDynamoDBTable
+              - Arn
+            - Fn::GetAtt:
+              - sentimentDynamoDBTable
+              - Arn
+        PolicyName: RekogDemo-readDDB
+    Type: AWS::IAM::Role
+  DbWriteRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - dynamodb:GetItem
+            - dynamodb:GetRecords
+            - dynamodb:PutItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:UpdateItem
+            Effect: Allow
+            Resource:
+            - Fn::GetAtt:
+              - sentimentDynamoDBTable
+              - Arn
+        PolicyName: RekogDemo-writeDDB
+    Type: AWS::IAM::Role
+  RestApi:
+    Name:
+      Fn::Sub: RekogDemo-${CollectionId}
+    Properties:
+      DefinitionBody:
+        basePath: /PROD
+        info:
+          title:
+            Fn::Sub: RekogDemo-${CollectionId}
+          version: 1.0
+        paths:
+          /people:
+            get:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbReadRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json: "{\n    \"TableName\": \"RekogFacesRekogDemo\"\
+                    ,\n    \"KeyConditionExpression\": \"CollectionId = :cid\",\n\
+                    \    \"ProjectionExpression\": \"MemberName,JobTitle,ExternalImageId\"\
+                    ,\n    \"ExpressionAttributeValues\": {\n        \":cid\": {\n\
+                    \            \"S\": \"RekogDemo\"\n        }\n    }\n}\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "#set($inputRoot = $input.path('$'))\n{\n\
+                        \    \"people\": [\n        #foreach($elem in $inputRoot.Items)\
+                        \ {\n            \"externalImageId\": \"$elem.ExternalImageId.S\"\
+                        ,\n            \"memberName\": \"$elem.MemberName.S\",\n \
+                        \           \"jobTitle\": \"$elem.JobTitle.S\"\n        }#if($foreach.hasNext),#end\n\
+                        \        #end\n    ]\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+        swagger: 2.0
+      EndpointConfiguration: REGIONAL
+      StageName: PROD
+    Type: AWS::Serverless::Api
+  clientS3Bucket:
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          AllowedOrigins:
+          - '*'
+          Id:
+            Fn::Sub: RekogCorsRule${CollectionId}
+          MaxAge: '3600'
+    Type: AWS::S3::Bucket
+  cognitoIdentityPool:
+    Properties:
+      AllowUnauthenticatedIdentities: true
+      IdentityPoolName:
+        Fn::Sub: RekogIdentityPool${CollectionId}
+    Type: AWS::Cognito::IdentityPool
+  facesDynamoDBTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: CollectionId
+        AttributeType: S
+      - AttributeName: ExternalImageId
+        AttributeType: S
+      - AttributeName: MemberName
+        AttributeType: S
+      - AttributeName: JobTitle
+        AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+      - IndexName: geGSI
+        KeySchema:
+        - AttributeName: JobTitle
+          KeyType: HASH
+        - AttributeName: MemberName
+          KeyType: RANGE
+        Projection:
+          NonKeyAttributes:
+          - CollectionId
+          - ExternalImageId
+          ProjectionType: INCLUDE
+      KeySchema:
+      - AttributeName: CollectionId
+        KeyType: HASH
+      - AttributeName: ExternalImageId
+        KeyType: RANGE
+      TableName:
+        Fn::Sub: RekogFaces${CollectionId}
+    Type: AWS::DynamoDB::Table
+  sentimentDynamoDBTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: CollectionId
+        AttributeType: S
+      - AttributeName: TimeDetected
+        AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+      - IndexName: gsiSentiment
+        KeySchema:
+        - AttributeName: CollectionId
+          KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+      KeySchema:
+      - AttributeName: CollectionId
+        KeyType: HASH
+      - AttributeName: TimeDetected
+        KeyType: RANGE
+      TableName:
+        Fn::Sub: RekogSentiment${CollectionId}
+    Type: AWS::DynamoDB::Table
+  setup:
+    Properties:
+      CodeUri: s3://matteo-rekognition-demo-test/aad4bcb4a0e067c2aecee30b4a481c05
+      Description: Setup s3 static bucket and rekognition collectionId
+      FunctionName: RekogDemoSetup
+      Handler: index.handler
+      MemorySize: 128
+      Role:
+        Fn::GetAtt:
+        - setupLambdaRole
+        - Arn
+      Runtime: nodejs8.10
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  setupLambdaRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action: s3:*
+            Effect: Allow
+            Resource: '*'
+        PolicyName: RekogDemo-setup-S3-fc
+      - PolicyDocument:
+          Statement:
+          - Action: rekognition:*
+            Effect: Allow
+            Resource: '*'
+        PolicyName: RekogDemo-createRekColl
+      - PolicyDocument:
+          Statement:
+          - Action: logs:*
+            Effect: Allow
+            Resource: arn:aws:logs:*:*:*
+        PolicyName: RekogDemo-cloudwatch-logs
+    Type: AWS::IAM::Role
+Transform: AWS::Serverless-2016-10-31

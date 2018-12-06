@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <title>AWS Rekognition Sentiment Analysis Demo</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://sdk.amazonaws.com/js/aws-sdk-2.213.1.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="jpeg_camera_update_for_safari.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="angular-app.js"></script>
+    <script src="angular-dir.js"></script>
+    <link href="style.css" media="all" rel="stylesheet" type="text/css" /></link>
+  </head>
+  
+  <body ng-app="rekDemo" ng-controller="rekCtrl as rC">
+
+    <div class="container-fluid">
+      
+      <div class="row">
+
+        <div class="col-lg-4">
+          <div class="row">
+            <div class="col-lg-12">
+              <img src="aws-logo.png" alt="AWS logo" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-12" id="FacesFound">
+              <div ng-repeat="face in rC.welcome">
+                <h1>Welcome {{face.MemberName.S}} ({{face.JobTitle.S}}) !</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="col-lg-4">
+          <div id="camera">
+            <div class="placeholder">
+              Your browser does not support camera access.<br>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="row">
+            <div class="col-lg-12">
+              <img src="aws-logo.png" alt="AWS logo" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-12" id="LabelResults">
+              <table class="table table-dark" ng-repeat="person in rC.peeps track by $index">
+                <thead>
+                  <tr>
+                    <th>Sentiment (Person {{$index+1}})</th>
+                    <th>Value / Confidence (Person {{$index+1}})</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="sentiment in rC.sentiments" ng-if="person[sentiment]">
+                    <td ng-bind="sentiment"></td>
+                    <td ng-bind="person[sentiment]"></td>
+                    <!--<span ng-if="person.sentiment.Confidence" ng-bind="person.sentiment.Confidence"></span>-->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+          </div>
+        </div>
+      
+      </div>
+      <!--<div my-dir class="graph">-->
+      
+      <button class="btn btn-lg btn-success" ng-click="rC.startRekognition()" ng-show="rC.imagecheck == 0">Start Rekognition</button>
+      <button class="btn btn-lg btn-danger" ng-click="rC.stopRekognition()" ng-show="rC.imagecheck == 1">Stop Rekognition</button>
+
+    <div class="row">
+      <div class="col-lg-4"><h1 class="text-info">Trend for Last Hour</h1></div>        
+      <div class="col-lg-4"><h1 class="text-info">Engaged'o'meter</h1></div>
+      <div class="col-lg-4"></div>
+    </div>
+    
+    <div class="row">
+      <div graph-dir class="chart col-lg-4" id="chart" chart-data="aggregate"></div>
+      <div gauge-dir class="guage col-lg-4" id="power-gauge" happy-data="happyometer"></div>
+      <div class="col-lg-4"></div>      
+    </div>
+
+    </div>
+    
+  </body>
+</html>

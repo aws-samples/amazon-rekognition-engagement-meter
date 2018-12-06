@@ -1,0 +1,474 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: 'AWS::Serverless-2016-10-31'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        #SENTIMENT_TABLE: !Ref sentimentDynamoDBTable
+        #SENTIMENT_IDX: 'gsiSentiment'
+        #FACES_TABLE: !Ref facesDynamoDBTable
+        #REK_COLLECTION_ID: 'rekog-demo'
+        API_GATEWAY: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD
+        COGNITO_IDENTITY_POOL: !Ref cognitoIdentityPool
+        COLLECTION_ID: !Sub ${CollectionId}
+        FROM_BUCKET: matteo-rekognition-demo-test
+        REGION: !Sub ${AWS::Region}
+        TO_BUCKET: !Ref clientS3Bucket
+  Api:
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+Parameters:
+  CollectionId:
+    Type: String
+    Default: RekogDemo
+    AllowedPattern : "^[a-zA-Z0-9_]*$"
+
+Resources:
+  ###################################
+  # S3 - for static web site
+  ###################################
+  clientS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders: ['*']
+          AllowedMethods: [GET]
+          AllowedOrigins: ['*']
+          Id: !Sub RekogCorsRule${CollectionId}
+          MaxAge: '3600'
+  ###################################
+  # Cognito - for unauth API calls
+  ###################################
+  cognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub RekogIdentityPool${CollectionId}
+      AllowUnauthenticatedIdentities: true
+  ###################################
+  # DynamoDB tables
+  ###################################
+  # Recognised faces
+  facesDynamoDBTable: 
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub RekogFaces${CollectionId}
+      AttributeDefinitions: 
+        - 
+          AttributeName: "CollectionId"
+          AttributeType: "S"
+        - 
+          AttributeName: "ExternalImageId"
+          AttributeType: "S"
+        - 
+          AttributeName: "MemberName"
+          AttributeType: "S"
+        - 
+          AttributeName: "JobTitle"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "CollectionId"
+          KeyType: "HASH"
+        - 
+          AttributeName: "ExternalImageId"
+          KeyType: "RANGE"
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes: 
+        - 
+          IndexName: "geGSI"
+          KeySchema: 
+            - 
+              AttributeName: "JobTitle"
+              KeyType: "HASH"
+            - 
+              AttributeName: "MemberName"
+              KeyType: "RANGE"
+          Projection: 
+            NonKeyAttributes: 
+              - "CollectionId"
+              - "ExternalImageId"
+            ProjectionType: "INCLUDE"
+  # Sentiment historical data
+  sentimentDynamoDBTable: 
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub RekogSentiment${CollectionId}
+      AttributeDefinitions: 
+        - 
+          AttributeName: "CollectionId"
+          AttributeType: "S"
+        - 
+          AttributeName: "TimeDetected"
+          AttributeType: "N"
+      KeySchema: 
+        - 
+          AttributeName: "CollectionId"
+          KeyType: "HASH"
+        - 
+          AttributeName: "TimeDetected"
+          KeyType: "RANGE"
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes: 
+        - 
+          IndexName: "gsiSentiment"
+          KeySchema: 
+            - 
+              AttributeName: "CollectionId"
+              KeyType: "HASH"
+          Projection: 
+            ProjectionType: "ALL"
+  
+  #######################
+  # IAM Roles
+  #######################
+#   LambdaExecutionRole:
+#     Type: "AWS::IAM::Role"
+#     Properties:
+#       AssumeRolePolicyDocument:
+#         Statement:
+#           -  Effect: "Allow"
+#              Principal:
+#                Service:
+#                  - 'lambda.amazonaws.com'
+#              Action:
+#                - sts:AssumeRole
+#       Path: '/'
+#       Policies:
+#         - PolicyName: AllowLambdaSimulateAccess
+#           PolicyDocument:
+#             Statement:
+#             - Effect: Allow
+#               Action: ['logs:CreateLogGroup',
+#                 'logs:CreateLogStream',
+#                 'logs:PutLogEvents']
+#               Resource: arn:aws:logs:*:*:*
+#             - Effect: Allow
+#               Action: ['config:GetResourceConfigHistory',
+#                 'config:PutEvaluations',
+#                 'config:StartConfigRulesEvaluation',
+#                 'iam:GetPolicy',
+#                 'iam:GetPolicyVersion',
+#                 'iam:SimulateCustomPolicy',
+#                 'iam:ListEntitiesforPolicy',
+#                 'iam:GetGroup',
+#                 'logs:*',
+#                 's3:GetBucketPolicy']
+#               Resource: '*'
+  DbReadRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: RekogDemo-readDDB
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action: [
+                  'dynamodb:GetItem',
+                  'dynamodb:Query',
+                  'dynamodb:Scan'
+                  ]
+              Resource:
+                - !GetAtt facesDynamoDBTable.Arn
+                - !GetAtt sentimentDynamoDBTable.Arn
+  DbWriteRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: RekogDemo-writeDDB
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action: [
+                  'dynamodb:GetItem',
+                  'dynamodb:GetRecords',
+                  'dynamodb:PutItem',
+                  'dynamodb:Query',
+                  'dynamodb:Scan',
+                  'dynamodb:UpdateItem'
+                  ]
+              Resource:
+                - !GetAtt sentimentDynamoDBTable.Arn
+  setupLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: RekogDemo-setup-S3-fc
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action: 's3:*'
+              Resource: '*'
+        - PolicyName: RekogDemo-createRekColl
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action: 'rekognition:*'
+              Resource: '*'
+        - PolicyName: RekogDemo-cloudwatch-logs
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action: 'logs:*'
+              Resource: 'arn:aws:logs:*:*:*'
+  ########################################
+  # API Gateway
+  ########################################
+  RestApi:
+    Name: !Sub RekogDemo-${CollectionId}
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: 'PROD'
+      EndpointConfiguration: 'REGIONAL'
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          version: 1.0
+          title: !Sub RekogDemo-${CollectionId}
+        basePath: "/PROD"
+        paths:
+          /people:
+            get:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt DbReadRole.Arn
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: |
+                        #set($inputRoot = $input.path('$'))
+                        {
+                            "people": [
+                                #foreach($elem in $inputRoot.Items) {
+                                    "externalImageId": "$elem.ExternalImageId.S",
+                                    "memberName": "$elem.MemberName.S",
+                                    "jobTitle": "$elem.JobTitle.S"
+                                }#if($foreach.hasNext),#end
+                                #end
+                            ]
+                        }
+                requestTemplates:
+                  application/json: |
+                    {
+                        "TableName": "RekogFacesRekogDemo",
+                        "KeyConditionExpression": "CollectionId = :cid",
+                        "ProjectionExpression": "MemberName,JobTitle,ExternalImageId",
+                        "ExpressionAttributeValues": {
+                            ":cid": {
+                                "S": "RekogDemo"
+                            }
+                        }
+                    }
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                type: "aws"
+#           "/engagement":
+#             get:
+#               responses:
+#                 '200':
+#                   description: Project profiles
+#                   headers:
+#                     Access-Control-Allow-Origin:
+#                       type: "string"
+#               security:
+#                 - sigv4: []
+#               x-amazon-apigateway-integration:
+#                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getEngagement.Arn}/invocations
+#                 httpMethod: POST
+#                 type: aws
+#                 responses:
+#                   default:
+#                     statusCode: '200'
+#                     responseParameters:
+#                       method.response.header.Access-Control-Allow-Origin : "'*'"
+#           "/sentiment":
+#             get:
+#               responses:
+#                 '200':
+#                   description: Project profiles
+#                   headers:
+#                     Access-Control-Allow-Origin:
+#                       type: "string"
+#               security:
+#                 - sigv4: []
+#               x-amazon-apigateway-integration:
+#                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getSentiment.Arn}/invocations
+#                 httpMethod: POST
+#                 type: aws
+#                 responses:
+#                   default:
+#                     statusCode: '200'
+#                     responseParameters:
+#                       method.response.header.Access-Control-Allow-Origin : "'*'"
+#             post:
+#               responses:
+#                 '200':
+#                   description: Project profiles
+#                   headers:
+#                     Access-Control-Allow-Origin:
+#                       type: "string"
+#               security:
+#                 - sigv4: []
+#               x-amazon-apigateway-integration:
+#                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${postSentiment.Arn}/invocations
+#                 httpMethod: POST
+#                 type: aws
+#                 responses:
+#                   default:
+#                     statusCode: '200'
+#                     responseParameters:
+#                       method.response.header.Access-Control-Allow-Origin : "'*'"
+#         securityDefinitions:
+#           sigv4:
+#             type: "apiKey"
+#             name: "Authorization"
+#             in: "header"
+#             x-amazon-apigateway-authtype: "awsSigv4"
+  ############################
+  # Lambda functions
+  ############################
+#   # Get People from DynamoDB table with faces registered in Rekognition
+#   getPeople:
+#     Type: AWS::Serverless::Function
+#     Properties:
+#       FunctionName: rekog_getPeople
+#       Runtime: nodejs6.10
+#       Handler: index.handler
+#       CodeUri: 's3://ge-demos/rekog/lambda/get-people.zip'
+#       Description: "Get people meta-data from DynamoDB"
+#       MemorySize: 128
+#       Timeout: 3
+#       Role: !GetAtt AppDDBReadRole.Arn
+#       Events:
+#         GetPeople:
+#           Type: Api
+#           Properties:
+#             Path: /people
+#             Method: get
+#             RestApiId: !Ref sentimentAPI
+#   getSentiment:
+#     Type: AWS::Serverless::Function
+#     Properties:
+#       FunctionName: rekog_getSentiments
+#       Runtime: nodejs6.10
+#       Handler: index.handler
+#       CodeUri: 's3://ge-demos/rekog/lambda/get-sentiments.zip'
+#       Description: "Get sentiment data from DynamoDB"
+#       MemorySize: 128
+#       Timeout: 3
+#       Role: !GetAtt AppDDBReadRole.Arn
+#       Events:
+#         GetSentiment:
+#           Type: Api
+#           Properties:
+#             Path: /sentiment
+#             Method: get
+#             RestApiId: !Ref sentimentAPI
+#   postSentiment:
+#     Type: AWS::Serverless::Function
+#     Properties:
+#       FunctionName: rekog_postSentiments
+#       Runtime: nodejs6.10
+#       Handler: index.handler
+#       CodeUri: 's3://ge-demos/rekog/lambda/post-sentiments.zip'
+#       Description: "Post sentiment data to DynamoDB"
+#       MemorySize: 128
+#       Timeout: 3
+#       Role: !GetAtt AppDDBWriteRole.Arn
+#       Events:
+#         PostSentiment:
+#           Type: Api
+#           Properties:
+#             Path: /sentiment
+#             Method: post
+#             RestApiId: !Ref sentimentAPI
+#   getEngagement:
+#     Type: AWS::Serverless::Function
+#     Properties:
+#       FunctionName: rekog_getEngagement
+#       Runtime: nodejs6.10
+#       Handler: index.handler
+#       CodeUri: 's3://ge-demos/rekog/lambda/get-engagement.zip'
+#       Description: "Get engagement point in time data from DynamoDB"
+#       MemorySize: 128
+#       Timeout: 3
+#       Role: !GetAtt AppDDBReadRole.Arn
+#       Events:
+#         GetEngagement:
+#           Type: Api
+#           Properties:
+#             Path: /engagement
+#             Method: get
+#             RestApiId: !Ref sentimentAPI
+  setup:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: RekogDemoSetup
+      Runtime: nodejs8.10
+      Handler: index.handler
+      CodeUri: '../functions/setup/'
+      Description: "Setup s3 static bucket and rekognition collectionId"
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt setupLambdaRole.Arn
+# #####################################################
+# # Parameter Store
+# #####################################################
+#   myParams:
+#     Type: AWS::SSM::Parameter
+#     Properties:
+#       Description: 'Cognito ID Pool'
+#       Type: String
+#       Value: !Ref RekogIDPool
+# #####################################################
+# # Outputs
+# #####################################################
+# Outputs:
+#   apiGatewayUrl:
+#     Description: 'Deployed API Gateway stage URL for Prod'
+#     Value: !Sub https://${sentimentAPI}.execute-api.${AWS::Region}.amazonaws.com/PROD
+#   cognitoIdPoolId:
+#     Description: 'Pool ID for Cognito auth for API methods'
+#     Value: !Ref RekogIDPool
+#   bucketName:
+#     Value: !Ref clientS3Bucket
+#     Description: Name of the sample Amazon S3 bucket with CORS enabled.
