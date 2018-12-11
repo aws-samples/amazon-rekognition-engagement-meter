@@ -13,12 +13,17 @@ Globals:
         COGNITO_IDENTITY_POOL:
           Ref: cognitoIdentityPool
         COLLECTION_ID:
-          Fn::Sub: ${CollectionId}
+          Ref: CollectionId
         FROM_BUCKET: matteo-rekognition-demo-test
         REGION:
-          Fn::Sub: ${AWS::Region}
+          Ref: AWS::Region
         TO_BUCKET:
           Ref: clientS3Bucket
+Outputs:
+  url:
+    Description: Engagement meter URL
+    Value:
+      Fn::Sub: https://s3-${AWS::Region}.amazonaws.com/${clientS3Bucket}/index.html
 Parameters:
   CollectionId:
     AllowedPattern: ^[a-zA-Z0-9_]*$
@@ -185,6 +190,22 @@ Resources:
       TableName:
         Fn::Sub: RekogFaces${CollectionId}
     Type: AWS::DynamoDB::Table
+  lambdaSetup:
+    Properties:
+      CodeUri: s3://matteo-rekognition-demo-test/132c9b29f7fc3640d737e67591c13163
+      Description:
+        Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
+      FunctionName:
+        Fn::Sub: RekogDemoSetup${CollectionId}
+      Handler: index.handler
+      MemorySize: 128
+      Role:
+        Fn::GetAtt:
+        - setupLambdaRole
+        - Arn
+      Runtime: nodejs8.10
+      Timeout: 30
+    Type: AWS::Serverless::Function
   sentimentDynamoDBTable:
     Properties:
       AttributeDefinitions:
@@ -208,20 +229,6 @@ Resources:
       TableName:
         Fn::Sub: RekogSentiment${CollectionId}
     Type: AWS::DynamoDB::Table
-  setup:
-    Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/aad4bcb4a0e067c2aecee30b4a481c05
-      Description: Setup s3 static bucket and rekognition collectionId
-      FunctionName: RekogDemoSetup
-      Handler: index.handler
-      MemorySize: 128
-      Role:
-        Fn::GetAtt:
-        - setupLambdaRole
-        - Arn
-      Runtime: nodejs8.10
-      Timeout: 30
-    Type: AWS::Serverless::Function
   setupLambdaRole:
     Properties:
       AssumeRolePolicyDocument:
@@ -253,4 +260,13 @@ Resources:
             Resource: arn:aws:logs:*:*:*
         PolicyName: RekogDemo-cloudwatch-logs
     Type: AWS::IAM::Role
+  setupS3AndRekognition:
+    Properties:
+      Region:
+        Ref: AWS::Region
+      ServiceToken:
+        Fn::GetAtt:
+        - lambdaSetup
+        - Arn
+    Type: Custom::Setup
 Transform: AWS::Serverless-2016-10-31

@@ -1,50 +1,34 @@
 const AWS = require("aws-sdk");
+const RekognitionHandler = require("./rekognition-handler");
+const ResponseHandler = require("./response-handler");
+const S3Handler = require("./s3-handler");
 
-const {
-  API_GATEWAY,
-  COGNITO_IDENTITY_POOL,
-  COLLECTION_ID,
-  FROM_BUCKET,
-  REGION,
-  TO_BUCKET
-} = process.env;
-
-const STATIC_FILES = ["index.html", "style.css"];
-const CONFIG_FILENAME = "settings.json";
+const { REGION } = process.env;
 
 exports.handler = (event, context, callback) => {
-  const rekognition = new AWS.Rekognition({ region: REGION });
-  const s3 = new AWS.S3();
-
-  const copyFile = params => s3.copyObject(params).promise();
-
-  const copyFiles = Promise.all(
-    STATIC_FILES.map(file =>
-      copyFile({
-        ACL: 'public-read',
-        Bucket: TO_BUCKET,
-        CopySource: `${FROM_BUCKET}/static/${file}`,
-        Key: file
-      })
-    )
+  const { createCollection, deleteCollection } = RekognitionHandler(
+    new AWS.Rekognition({ region: REGION })
   );
+  const { copyFiles, removeFiles, writeSettings } = S3Handler(new AWS.S3());
+  const { sendResponse } = ResponseHandler(event, context, callback);
 
-  const writeSettings = s3
-    .putObject({
-      Bucket: TO_BUCKET,
-      Key: CONFIG_FILENAME,
-      Body: JSON.stringify({
-        apiGateway: API_GATEWAY,
-        cognitoIdentityPool: COGNITO_IDENTITY_POOL
-      })
+  const eventType = event.RequestType;
+  let actions;
+
+  if (eventType === "Create") {
+    console.log("Creating resources");
+    actions = [copyFiles(), writeSettings(), createCollection()];
+  } else if (eventType === "Delete") {
+    console.log("Deleting resources");
+    actions = [removeFiles(), deleteCollection()];
+  }
+
+  Promise.all(actions)
+    .then(() => {
+      console.log("All actions successfully performed");
+      return sendResponse("SUCCESS", {
+        Message: `Resources successfully ${eventType.toLowerCase()}d`
+      });
     })
-    .promise();
-
-  const createRekognitionCollection = rekognition
-    .createCollection({ CollectionId: COLLECTION_ID })
-    .promise();
-
-  Promise.all([copyFiles, writeSettings, createRekognitionCollection])
-    .then(() => callback(null, { success: true }))
-    .catch(err => callback(err));
+    .catch(err => console.log(err) || sendResponse("FAILED"));
 };
