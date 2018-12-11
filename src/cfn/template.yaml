@@ -471,6 +471,6 @@ Resources:
 # # Outputs
 # #####################################################
 Outputs:
-  bucketName:
+  url:
     Value: !Sub https://s3-${AWS::Region}.amazonaws.com/${clientS3Bucket}/index.html
-    Description: Name of the sample Amazon S3 bucket with CORS enabled.
+    Description: Engagement meter URL

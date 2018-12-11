@@ -20,8 +20,8 @@ Globals:
         TO_BUCKET:
           Ref: clientS3Bucket
 Outputs:
-  bucketName:
-    Description: Name of the sample Amazon S3 bucket with CORS enabled.
+  url:
+    Description: Engagement meter URL
     Value:
       Fn::Sub: https://s3-${AWS::Region}.amazonaws.com/${clientS3Bucket}/index.html
 Parameters:
@@ -192,7 +192,7 @@ Resources:
     Type: AWS::DynamoDB::Table
   lambdaSetup:
     Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/1fb9d5cc4cb49e91791ee6b7629aa83f
+      CodeUri: s3://matteo-rekognition-demo-test/132c9b29f7fc3640d737e67591c13163
       Description:
         Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
       FunctionName:
