@@ -158,6 +158,8 @@ Resources:
   DbWriteRole:
     Type: "AWS::IAM::Role"
     Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
       AssumeRolePolicyDocument:
         Statement:
           - Effect: "Allow"
@@ -166,22 +168,6 @@ Resources:
                 - 'apigateway.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
-      Path: '/'
-      Policies:
-        - PolicyName: RekogDemo-writeDDB
-          PolicyDocument:
-            Statement:
-            - Effect: Allow
-              Action: [
-                  'dynamodb:GetItem',
-                  'dynamodb:GetRecords',
-                  'dynamodb:PutItem',
-                  'dynamodb:Query',
-                  'dynamodb:Scan',
-                  'dynamodb:UpdateItem'
-                  ]
-              Resource:
-                - !GetAtt sentimentDynamoDBTable.Arn
   setupLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -275,6 +261,58 @@ Resources:
                         },
                         ":td": {
                           "S": "$input.params().querystring.get('timeDetected')"
+                        }
+                      }
+                    }
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                type: "aws"
+            post:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt  DbWriteRole.Arn
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: |
+                        {
+                          "ok": true
+                        }
+                requestTemplates:
+                  application/json: !Sub |
+                    {
+                      "TableName": "${sentimentDynamoDBTable}",
+                      "Item": {
+                        "CollectionId": {
+                          "S": "${CollectionId}"
+                        },
+                        "TimeDetected": {
+                          "N": "$input.json('$.timeDetected')"
+                        },
+                        "Angry": {
+                          "S": "$input.json('$.angry')"
+                        },
+                        "Confused": {
+                          "S": "$input.json('$.confused')"
+                        },
+                        "Happy": {
+                          "S": "$input.json('$.happy')"
+                        },
+                        "Sad": {
+                          "S": "$input.json('$.sad')"
+                        },
+                        "Surprised": {
+                          "S": "$input.json('$.surprised')"
                         }
                       }
                     }

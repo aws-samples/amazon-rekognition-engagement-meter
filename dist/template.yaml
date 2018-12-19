@@ -53,23 +53,8 @@ Resources:
           Principal:
             Service:
             - apigateway.amazonaws.com
-      Path: /
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action:
-            - dynamodb:GetItem
-            - dynamodb:GetRecords
-            - dynamodb:PutItem
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:UpdateItem
-            Effect: Allow
-            Resource:
-            - Fn::GetAtt:
-              - sentimentDynamoDBTable
-              - Arn
-        PolicyName: RekogDemo-writeDDB
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
     Type: AWS::IAM::Role
   RekognitionInvokeRole:
     Properties:
@@ -137,6 +122,42 @@ Resources:
                 type: aws
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbWriteRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
+                      \  \"Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                      \n    },\n    \"TimeDetected\": {\n      \"N\": \"$input.json('$.timeDetected')\"\
+                      \n    },\n    \"Angry\": {\n      \"S\": \"$input.json('$.angry')\"\
+                      \n    },\n    \"Confused\": {\n      \"S\": \"$input.json('$.confused')\"\
+                      \n    },\n    \"Happy\": {\n      \"S\": \"$input.json('$.happy')\"\
+                      \n    },\n    \"Sad\": {\n      \"S\": \"$input.json('$.sad')\"\
+                      \n    },\n    \"Surprised\": {\n      \"S\": \"$input.json('$.surprised')\"\
+                      \n    }\n  }\n}\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "{\n  \"ok\": true\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
           /faces/detect:
             post:
               consumes:
