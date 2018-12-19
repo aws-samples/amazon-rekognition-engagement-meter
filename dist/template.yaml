@@ -86,6 +86,25 @@ Resources:
               - Arn
         PolicyName: RekogDemo-writeDDB
     Type: AWS::IAM::Role
+  RekognitionInvokeRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action: rekognition:*
+            Effect: Allow
+            Resource: '*'
+        PolicyName: RekogDemo-invokeRekognition
+    Type: AWS::IAM::Role
   RestApi:
     Name:
       Fn::Sub: RekogDemo-${CollectionId}
@@ -97,6 +116,38 @@ Resources:
             Fn::Sub: RekogDemo-${CollectionId}
           version: 1.0
         paths:
+          /faces/search:
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - RekognitionInvokeRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestParameters:
+                  integration.request.header.Content-Type: '''application/x-amz-json-1.1'''
+                  integration.request.header.X-Amz-Target: '''RekognitionService.SearchFacesByImage'''
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"CollectionId\": \"${CollectionId}\",\n  \"FaceMatchThreshold\"\
+                      : 85,\n  \"Image\": {\n    \"Bytes\": $input.json('$.image')\n\
+                      \  }\n}\n"
+                responses:
+                  default:
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
           /people:
             get:
               consumes:
@@ -116,11 +167,12 @@ Resources:
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestTemplates:
-                  application/json: "{\n    \"TableName\": \"RekogFacesRekogDemo\"\
-                    ,\n    \"KeyConditionExpression\": \"CollectionId = :cid\",\n\
-                    \    \"ProjectionExpression\": \"MemberName,JobTitle,ExternalImageId\"\
-                    ,\n    \"ExpressionAttributeValues\": {\n        \":cid\": {\n\
-                    \            \"S\": \"RekogDemo\"\n        }\n    }\n}\n"
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${facesDynamoDBTable}\",\n  \"\
+                      KeyConditionExpression\": \"CollectionId = :cid\",\n  \"ProjectionExpression\"\
+                      : \"MemberName,JobTitle,ExternalImageId\",\n  \"ExpressionAttributeValues\"\
+                      : {\n    \":cid\": {\n      \"S\": \"${CollectionId}\"\n   \
+                      \ }\n  }\n}\n"
                 responses:
                   default:
                     responseTemplates:
@@ -192,7 +244,7 @@ Resources:
     Type: AWS::DynamoDB::Table
   lambdaSetup:
     Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/132c9b29f7fc3640d737e67591c13163
+      CodeUri: s3://matteo-rekognition-demo-test/f1aa4fd53c55456dc63522d016500e26
       Description:
         Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
       FunctionName:
