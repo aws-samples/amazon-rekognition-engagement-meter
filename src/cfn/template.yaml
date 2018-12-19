@@ -58,7 +58,6 @@ Resources:
   ###################################
   # DynamoDB tables
   ###################################
-  # Recognised faces
   facesDynamoDBTable: 
     Type: AWS::DynamoDB::Table
     Properties:
@@ -99,7 +98,6 @@ Resources:
               - "CollectionId"
               - "ExternalImageId"
             ProjectionType: "INCLUDE"
-  # Sentiment historical data
   sentimentDynamoDBTable: 
     Type: AWS::DynamoDB::Table
     Properties:
@@ -132,39 +130,19 @@ Resources:
   #######################
   # IAM Roles
   #######################
-#   LambdaExecutionRole:
-#     Type: "AWS::IAM::Role"
-#     Properties:
-#       AssumeRolePolicyDocument:
-#         Statement:
-#           -  Effect: "Allow"
-#              Principal:
-#                Service:
-#                  - 'lambda.amazonaws.com'
-#              Action:
-#                - sts:AssumeRole
-#       Path: '/'
-#       Policies:
-#         - PolicyName: AllowLambdaSimulateAccess
-#           PolicyDocument:
-#             Statement:
-#             - Effect: Allow
-#               Action: ['logs:CreateLogGroup',
-#                 'logs:CreateLogStream',
-#                 'logs:PutLogEvents']
-#               Resource: arn:aws:logs:*:*:*
-#             - Effect: Allow
-#               Action: ['config:GetResourceConfigHistory',
-#                 'config:PutEvaluations',
-#                 'config:StartConfigRulesEvaluation',
-#                 'iam:GetPolicy',
-#                 'iam:GetPolicyVersion',
-#                 'iam:SimulateCustomPolicy',
-#                 'iam:ListEntitiesforPolicy',
-#                 'iam:GetGroup',
-#                 'logs:*',
-#                 's3:GetBucketPolicy']
-#               Resource: '*'
+  RekognitionInvokeRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
   DbReadRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -295,20 +273,53 @@ Resources:
                             ]
                         }
                 requestTemplates:
-                  application/json: |
+                  application/json: !Sub |
                     {
-                        "TableName": "RekogFacesRekogDemo",
-                        "KeyConditionExpression": "CollectionId = :cid",
-                        "ProjectionExpression": "MemberName,JobTitle,ExternalImageId",
-                        "ExpressionAttributeValues": {
-                            ":cid": {
-                                "S": "RekogDemo"
-                            }
+                      "TableName": "${facesDynamoDBTable}",
+                      "KeyConditionExpression": "CollectionId = :cid",
+                      "ProjectionExpression": "MemberName,JobTitle,ExternalImageId",
+                      "ExpressionAttributeValues": {
+                        ":cid": {
+                          "S": "${CollectionId}"
                         }
+                      }
                     }
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+          /faces/search:
+            post:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt RekognitionInvokeRole.Arn
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
+                responses:
+                  default:
+                    statusCode: "200"
+                requestParameters:
+                  integration.request.header.X-Amz-Target: "'RekognitionService.SearchFacesByImage'"
+                  integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
+                requestTemplates:
+                  application/json: !Sub |
+                    {
+                      "CollectionId": "${CollectionId}",
+                      "FaceMatchThreshold": 85,
+                      "Image": {
+                        "Bytes": $input.json('$.image')
+                      }
+                    }
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                type: "aws"
+
 #           "/engagement":
 #             get:
 #               responses:
