@@ -145,6 +145,8 @@ Resources:
   DbReadRole:
     Type: "AWS::IAM::Role"
     Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
       AssumeRolePolicyDocument:
         Statement:
           - Effect: "Allow"
@@ -153,20 +155,6 @@ Resources:
                 - 'apigateway.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
-      Path: '/'
-      Policies:
-        - PolicyName: RekogDemo-readDDB
-          PolicyDocument:
-            Statement:
-            - Effect: Allow
-              Action: [
-                  'dynamodb:GetItem',
-                  'dynamodb:Query',
-                  'dynamodb:Scan'
-                  ]
-              Resource:
-                - !GetAtt facesDynamoDBTable.Arn
-                - !GetAtt sentimentDynamoDBTable.Arn
   DbWriteRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -241,8 +229,8 @@ Resources:
           title: !Sub RekogDemo-${CollectionId}
         basePath: "/PROD"
         paths:
-          /people:
-            get:
+          /engagement:
+            post:
               consumes:
                 - "application/json"
               produces:
@@ -262,11 +250,13 @@ Resources:
                       application/json: |
                         #set($inputRoot = $input.path('$'))
                         {
-                          "people": [
+                          "results": [
                             #foreach($elem in $inputRoot.Items) {
-                              "externalImageId": "$elem.ExternalImageId.S",
-                              "memberName": "$elem.MemberName.S",
-                              "jobTitle": "$elem.JobTitle.S"
+                              "angry": "$elem.angry.S",
+                              "confused": "$elem.confused.S",
+                              "happy": "$elem.happy.S",
+                              "sad": "$elem.sad.S",
+                              "surprised": "$elem.surprised.S",
                             }#if($foreach.hasNext),#end
                             #end
                           ]
@@ -274,12 +264,17 @@ Resources:
                 requestTemplates:
                   application/json: !Sub |
                     {
-                      "TableName": "${facesDynamoDBTable}",
+                      "TableName": "${sentimentDynamoDBTable}",
+                      "IndexName": "gsiSentiment",
                       "KeyConditionExpression": "CollectionId = :cid",
-                      "ProjectionExpression": "MemberName,JobTitle,ExternalImageId",
+                      "FilterExpression": "TimeDetected >= :td",
+                      "ProjectionExpression": "angry,confused,happy,sad,surprised",
                       "ExpressionAttributeValues": {
                         ":cid": {
                           "S": "${CollectionId}"
+                        },
+                        ":td": {
+                          "S": "$input.json('$.timeDetected')"
                         }
                       }
                     }
@@ -344,6 +339,51 @@ Resources:
                       "FaceMatchThreshold": 85,
                       "Image": {
                         "Bytes": $input.json('$.image')
+                      }
+                    }
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                type: "aws"
+          /people:
+            get:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt DbReadRole.Arn
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: |
+                        #set($inputRoot = $input.path('$'))
+                        {
+                          "people": [
+                            #foreach($elem in $inputRoot.Items) {
+                              "externalImageId": "$elem.ExternalImageId.S",
+                              "memberName": "$elem.MemberName.S",
+                              "jobTitle": "$elem.JobTitle.S"
+                            }#if($foreach.hasNext),#end
+                            #end
+                          ]
+                        }
+                requestTemplates:
+                  application/json: !Sub |
+                    {
+                      "TableName": "${facesDynamoDBTable}",
+                      "KeyConditionExpression": "CollectionId = :cid",
+                      "ProjectionExpression": "MemberName,JobTitle,ExternalImageId",
+                      "ExpressionAttributeValues": {
+                        ":cid": {
+                          "S": "${CollectionId}"
+                        }
                       }
                     }
                 passthroughBehavior: "when_no_match"

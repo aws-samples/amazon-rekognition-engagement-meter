@@ -40,23 +40,8 @@ Resources:
           Principal:
             Service:
             - apigateway.amazonaws.com
-      Path: /
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action:
-            - dynamodb:GetItem
-            - dynamodb:Query
-            - dynamodb:Scan
-            Effect: Allow
-            Resource:
-            - Fn::GetAtt:
-              - facesDynamoDBTable
-              - Arn
-            - Fn::GetAtt:
-              - sentimentDynamoDBTable
-              - Arn
-        PolicyName: RekogDemo-readDDB
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
     Type: AWS::IAM::Role
   DbWriteRole:
     Properties:
@@ -110,6 +95,47 @@ Resources:
             Fn::Sub: RekogDemo-${CollectionId}
           version: 1.0
         paths:
+          /engagement:
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbReadRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
+                      \  \"IndexName\": \"gsiSentiment\",\n  \"KeyConditionExpression\"\
+                      : \"CollectionId = :cid\",\n  \"FilterExpression\": \"TimeDetected\
+                      \ >= :td\",\n  \"ProjectionExpression\": \"angry,confused,happy,sad,surprised\"\
+                      ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
+                      \   \"S\": \"${CollectionId}\"\n    },\n    \":td\": {\n   \
+                      \   \"S\": \"$input.json('$.timeDetected')\"\n    }\n  }\n}\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "#set($inputRoot = $input.path('$'))\n{\n\
+                        \  \"results\": [\n    #foreach($elem in $inputRoot.Items)\
+                        \ {\n      \"angry\": \"$elem.angry.S\",\n      \"confused\"\
+                        : \"$elem.confused.S\",\n      \"happy\": \"$elem.happy.S\"\
+                        ,\n      \"sad\": \"$elem.sad.S\",\n      \"surprised\": \"\
+                        $elem.surprised.S\",\n    }#if($foreach.hasNext),#end\n  \
+                        \  #end\n  ]\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
           /faces/detect:
             post:
               consumes:
