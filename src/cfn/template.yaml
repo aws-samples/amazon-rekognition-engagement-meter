@@ -4,10 +4,6 @@ Globals:
   Function:
     Environment:
       Variables:
-        #SENTIMENT_TABLE: !Ref sentimentDynamoDBTable
-        #SENTIMENT_IDX: 'gsiSentiment'
-        #FACES_TABLE: !Ref facesDynamoDBTable
-        #REK_COLLECTION_ID: 'rekog-demo'
         API_GATEWAY: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD
         COGNITO_IDENTITY_POOL: !Ref cognitoIdentityPool
         COLLECTION_ID: !Ref CollectionId
@@ -576,15 +572,6 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: !GetAtt setupLambdaRole.Arn
-# #####################################################
-# # Parameter Store
-# #####################################################
-#   myParams:
-#     Type: AWS::SSM::Parameter
-#     Properties:
-#       Description: 'Cognito ID Pool'
-#       Type: String
-#       Value: !Ref RekogIDPool
 # #####################################################
 # # Outputs
 # #####################################################
