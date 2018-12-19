@@ -230,7 +230,7 @@ Resources:
         basePath: "/PROD"
         paths:
           /engagement:
-            post:
+            get:
               consumes:
                 - "application/json"
               produces:
@@ -274,7 +274,7 @@ Resources:
                           "S": "${CollectionId}"
                         },
                         ":td": {
-                          "S": "$input.json('$.timeDetected')"
+                          "S": "$input.params().querystring.get('timeDetected')"
                         }
                       }
                     }

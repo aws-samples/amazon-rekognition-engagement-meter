@@ -96,7 +96,7 @@ Resources:
           version: 1.0
         paths:
           /engagement:
-            post:
+            get:
               consumes:
               - application/json
               produces:
@@ -121,7 +121,8 @@ Resources:
                       \ >= :td\",\n  \"ProjectionExpression\": \"angry,confused,happy,sad,surprised\"\
                       ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
                       \   \"S\": \"${CollectionId}\"\n    },\n    \":td\": {\n   \
-                      \   \"S\": \"$input.json('$.timeDetected')\"\n    }\n  }\n}\n"
+                      \   \"S\": \"$input.params().querystring.get('timeDetected')\"\
+                      \n    }\n  }\n}\n"
                 responses:
                   default:
                     responseTemplates:
