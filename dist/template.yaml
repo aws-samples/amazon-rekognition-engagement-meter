@@ -110,6 +110,37 @@ Resources:
             Fn::Sub: RekogDemo-${CollectionId}
           version: 1.0
         paths:
+          /faces/detect:
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - RekognitionInvokeRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestParameters:
+                  integration.request.header.Content-Type: '''application/x-amz-json-1.1'''
+                  integration.request.header.X-Amz-Target: '''RekognitionService.DetectFaces'''
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"Attributes\": [\"ALL\"],\n  \"Image\": {\n  \
+                      \  \"Bytes\": $input.json('$.image')\n  }\n}\n"
+                responses:
+                  default:
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
           /faces/search:
             post:
               consumes:
@@ -171,11 +202,11 @@ Resources:
                   default:
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
-                        \    \"people\": [\n        #foreach($elem in $inputRoot.Items)\
-                        \ {\n            \"externalImageId\": \"$elem.ExternalImageId.S\"\
-                        ,\n            \"memberName\": \"$elem.MemberName.S\",\n \
-                        \           \"jobTitle\": \"$elem.JobTitle.S\"\n        }#if($foreach.hasNext),#end\n\
-                        \        #end\n    ]\n}\n"
+                        \  \"people\": [\n    #foreach($elem in $inputRoot.Items)\
+                        \ {\n      \"externalImageId\": \"$elem.ExternalImageId.S\"\
+                        ,\n      \"memberName\": \"$elem.MemberName.S\",\n      \"\
+                        jobTitle\": \"$elem.JobTitle.S\"\n    }#if($foreach.hasNext),#end\n\
+                        \    #end\n  ]\n}\n"
                     statusCode: '200'
                 type: aws
                 uri:
