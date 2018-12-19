@@ -133,6 +133,8 @@ Resources:
   RekognitionInvokeRole:
     Type: "AWS::IAM::Role"
     Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess
       AssumeRolePolicyDocument:
         Statement:
           - Effect: "Allow"
@@ -141,14 +143,6 @@ Resources:
                 - 'apigateway.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
-      Path: '/'
-      Policies:
-        - PolicyName: RekogDemo-invokeRekognition
-          PolicyDocument:
-            Statement:
-            - Effect: Allow
-              Action: 'rekognition:*'
-              Resource: '*'
   DbReadRole:
     Type: "AWS::IAM::Role"
     Properties:

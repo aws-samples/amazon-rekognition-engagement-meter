@@ -96,14 +96,8 @@ Resources:
           Principal:
             Service:
             - apigateway.amazonaws.com
-      Path: /
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action: rekognition:*
-            Effect: Allow
-            Resource: '*'
-        PolicyName: RekogDemo-invokeRekognition
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess
     Type: AWS::IAM::Role
   RestApi:
     Name:
