@@ -259,6 +259,40 @@ Resources:
                 type: aws
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbWriteRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${facesDynamoDBTable}\",\n  \"\
+                      Key\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                      \n    },\n    \"ExternalImageId\": {\n      \"S\": \"$input.json('$.externalImageId')\"\
+                      \n    }\n  },\n  \"UpdateExpression\": \"set TimeDetected =\
+                      \ :td\",\n  \"ExpressionAttributeValues\": {\n    \":td\": {\n\
+                      \      \"N\": \"$input.json('$.timeDetected')\"\n    }\n  }\n\
+                      }\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "{\n  \"ok\": true\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
         swagger: 2.0
       EndpointConfiguration: REGIONAL
       StageName: PROD

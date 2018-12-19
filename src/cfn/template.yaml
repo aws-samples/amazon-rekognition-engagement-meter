@@ -423,62 +423,49 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
-#           "/engagement":
-#             get:
-#               responses:
-#                 '200':
-#                   description: Project profiles
-#                   headers:
-#                     Access-Control-Allow-Origin:
-#                       type: "string"
-#               security:
-#                 - sigv4: []
-#               x-amazon-apigateway-integration:
-#                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getEngagement.Arn}/invocations
-#                 httpMethod: POST
-#                 type: aws
-#                 responses:
-#                   default:
-#                     statusCode: '200'
-#                     responseParameters:
-#                       method.response.header.Access-Control-Allow-Origin : "'*'"
-#           "/sentiment":
-#             get:
-#               responses:
-#                 '200':
-#                   description: Project profiles
-#                   headers:
-#                     Access-Control-Allow-Origin:
-#                       type: "string"
-#               security:
-#                 - sigv4: []
-#               x-amazon-apigateway-integration:
-#                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${getSentiment.Arn}/invocations
-#                 httpMethod: POST
-#                 type: aws
-#                 responses:
-#                   default:
-#                     statusCode: '200'
-#                     responseParameters:
-#                       method.response.header.Access-Control-Allow-Origin : "'*'"
-#             post:
-#               responses:
-#                 '200':
-#                   description: Project profiles
-#                   headers:
-#                     Access-Control-Allow-Origin:
-#                       type: "string"
-#               security:
-#                 - sigv4: []
-#               x-amazon-apigateway-integration:
-#                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${postSentiment.Arn}/invocations
-#                 httpMethod: POST
-#                 type: aws
-#                 responses:
-#                   default:
-#                     statusCode: '200'
-#                     responseParameters:
-#                       method.response.header.Access-Control-Allow-Origin : "'*'"
+            post:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt  DbWriteRole.Arn
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: |
+                        {
+                          "ok": true
+                        }
+                requestTemplates:
+                  application/json: !Sub |
+                    {
+                      "TableName": "${facesDynamoDBTable}",
+                      "Key": {
+                        "CollectionId": {
+                          "S": "${CollectionId}"
+                        },
+                        "ExternalImageId": {
+                          "S": "$input.json('$.externalImageId')"
+                        }
+                      },
+                      "UpdateExpression": "set TimeDetected = :td",
+                      "ExpressionAttributeValues": {
+                        ":td": {
+                          "N": "$input.json('$.timeDetected')"
+                        }
+                      }
+                    }
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                type: "aws"
 #         securityDefinitions:
 #           sigv4:
 #             type: "apiKey"
@@ -488,79 +475,6 @@ Resources:
   ############################
   # Lambda functions
   ############################
-#   # Get People from DynamoDB table with faces registered in Rekognition
-#   getPeople:
-#     Type: AWS::Serverless::Function
-#     Properties:
-#       FunctionName: rekog_getPeople
-#       Runtime: nodejs6.10
-#       Handler: index.handler
-#       CodeUri: 's3://ge-demos/rekog/lambda/get-people.zip'
-#       Description: "Get people meta-data from DynamoDB"
-#       MemorySize: 128
-#       Timeout: 3
-#       Role: !GetAtt AppDDBReadRole.Arn
-#       Events:
-#         GetPeople:
-#           Type: Api
-#           Properties:
-#             Path: /people
-#             Method: get
-#             RestApiId: !Ref sentimentAPI
-#   getSentiment:
-#     Type: AWS::Serverless::Function
-#     Properties:
-#       FunctionName: rekog_getSentiments
-#       Runtime: nodejs6.10
-#       Handler: index.handler
-#       CodeUri: 's3://ge-demos/rekog/lambda/get-sentiments.zip'
-#       Description: "Get sentiment data from DynamoDB"
-#       MemorySize: 128
-#       Timeout: 3
-#       Role: !GetAtt AppDDBReadRole.Arn
-#       Events:
-#         GetSentiment:
-#           Type: Api
-#           Properties:
-#             Path: /sentiment
-#             Method: get
-#             RestApiId: !Ref sentimentAPI
-#   postSentiment:
-#     Type: AWS::Serverless::Function
-#     Properties:
-#       FunctionName: rekog_postSentiments
-#       Runtime: nodejs6.10
-#       Handler: index.handler
-#       CodeUri: 's3://ge-demos/rekog/lambda/post-sentiments.zip'
-#       Description: "Post sentiment data to DynamoDB"
-#       MemorySize: 128
-#       Timeout: 3
-#       Role: !GetAtt AppDDBWriteRole.Arn
-#       Events:
-#         PostSentiment:
-#           Type: Api
-#           Properties:
-#             Path: /sentiment
-#             Method: post
-#             RestApiId: !Ref sentimentAPI
-#   getEngagement:
-#     Type: AWS::Serverless::Function
-#     Properties:
-#       FunctionName: rekog_getEngagement
-#       Runtime: nodejs6.10
-#       Handler: index.handler
-#       CodeUri: 's3://ge-demos/rekog/lambda/get-engagement.zip'
-#       Description: "Get engagement point in time data from DynamoDB"
-#       MemorySize: 128
-#       Timeout: 3
-#       Role: !GetAtt AppDDBReadRole.Arn
-#       Events:
-#         GetEngagement:
-#           Type: Api
-#           Properties:
-#             Path: /engagement
-#             Method: get
-#             RestApiId: !Ref sentimentAPI
   lambdaSetup:
     Type: AWS::Serverless::Function
     Properties:
