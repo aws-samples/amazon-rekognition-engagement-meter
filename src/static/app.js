@@ -121,7 +121,7 @@ app.controller("rekCtrl", [
       mySVC
         .searchFaces(image)
         .then(function(data) {
-          self.detected = []; //clear the detected array
+          self.detected = [];
 
           $.each(data.FaceMatches, function(index, value) {
             var externalImageId = value.Face.ExternalImageId;
