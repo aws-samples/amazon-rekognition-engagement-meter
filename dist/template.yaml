@@ -30,6 +30,19 @@ Parameters:
     Default: RekogDemo
     Type: String
 Resources:
+  ApiGatewayInvokeRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRoleWithWebIdentity
+          Effect: Allow
+          Principal:
+            Federated:
+            - cognito-identity.amazonaws.com
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+    Type: AWS::IAM::Role
   DbReadRole:
     Properties:
       AssumeRolePolicyDocument:
@@ -89,6 +102,9 @@ Resources:
               responses:
                 '200':
                   description: 200 response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
                   schema:
                     $ref: '#/definitions/Empty'
               x-amazon-apigateway-integration:
@@ -110,6 +126,8 @@ Resources:
                       \n    }\n  }\n}\n"
                 responses:
                   default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
                         \  \"results\": [\n    #foreach($elem in $inputRoot.Items)\
@@ -130,6 +148,9 @@ Resources:
               responses:
                 '200':
                   description: 200 response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
                   schema:
                     $ref: '#/definitions/Empty'
               x-amazon-apigateway-integration:
@@ -152,6 +173,8 @@ Resources:
                       \n    }\n  }\n}\n"
                 responses:
                   default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "{\n  \"ok\": true\n}\n"
                     statusCode: '200'
@@ -167,6 +190,9 @@ Resources:
               responses:
                 '200':
                   description: 200 response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
                   schema:
                     $ref: '#/definitions/Empty'
               x-amazon-apigateway-integration:
@@ -185,6 +211,8 @@ Resources:
                       \  \"Bytes\": $input.json('$.image')\n  }\n}\n"
                 responses:
                   default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
                 uri:
@@ -198,6 +226,9 @@ Resources:
               responses:
                 '200':
                   description: 200 response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
                   schema:
                     $ref: '#/definitions/Empty'
               x-amazon-apigateway-integration:
@@ -217,6 +248,8 @@ Resources:
                       \  }\n}\n"
                 responses:
                   default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
                 uri:
@@ -230,6 +263,9 @@ Resources:
               responses:
                 '200':
                   description: 200 response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
                   schema:
                     $ref: '#/definitions/Empty'
               x-amazon-apigateway-integration:
@@ -248,6 +284,8 @@ Resources:
                       \ }\n  }\n}\n"
                 responses:
                   default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
                         \  \"people\": [\n    #foreach($elem in $inputRoot.Items)\
@@ -267,6 +305,9 @@ Resources:
               responses:
                 '200':
                   description: 200 response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
                   schema:
                     $ref: '#/definitions/Empty'
               x-amazon-apigateway-integration:
@@ -287,6 +328,8 @@ Resources:
                       }\n"
                 responses:
                   default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "{\n  \"ok\": true\n}\n"
                     statusCode: '200'
@@ -317,6 +360,20 @@ Resources:
       IdentityPoolName:
         Fn::Sub: RekogIdentityPool${CollectionId}
     Type: AWS::Cognito::IdentityPool
+  cognitoIdentityPoolRole:
+    Properties:
+      IdentityPoolId:
+        Ref: cognitoIdentityPool
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+          - ApiGatewayInvokeRole
+          - Arn
+        unauthenticated:
+          Fn::GetAtt:
+          - ApiGatewayInvokeRole
+          - Arn
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
   facesDynamoDBTable:
     Properties:
       AttributeDefinitions:
