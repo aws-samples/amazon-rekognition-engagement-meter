@@ -40,23 +40,8 @@ Resources:
           Principal:
             Service:
             - apigateway.amazonaws.com
-      Path: /
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action:
-            - dynamodb:GetItem
-            - dynamodb:Query
-            - dynamodb:Scan
-            Effect: Allow
-            Resource:
-            - Fn::GetAtt:
-              - facesDynamoDBTable
-              - Arn
-            - Fn::GetAtt:
-              - sentimentDynamoDBTable
-              - Arn
-        PolicyName: RekogDemo-readDDB
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
     Type: AWS::IAM::Role
   DbWriteRole:
     Properties:
@@ -68,23 +53,8 @@ Resources:
           Principal:
             Service:
             - apigateway.amazonaws.com
-      Path: /
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action:
-            - dynamodb:GetItem
-            - dynamodb:GetRecords
-            - dynamodb:PutItem
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:UpdateItem
-            Effect: Allow
-            Resource:
-            - Fn::GetAtt:
-              - sentimentDynamoDBTable
-              - Arn
-        PolicyName: RekogDemo-writeDDB
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
     Type: AWS::IAM::Role
   RekognitionInvokeRole:
     Properties:
@@ -110,6 +80,115 @@ Resources:
             Fn::Sub: RekogDemo-${CollectionId}
           version: 1.0
         paths:
+          /engagement:
+            get:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbReadRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
+                      \  \"IndexName\": \"gsiSentiment\",\n  \"KeyConditionExpression\"\
+                      : \"CollectionId = :cid\",\n  \"FilterExpression\": \"TimeDetected\
+                      \ >= :td\",\n  \"ProjectionExpression\": \"angry,confused,happy,sad,surprised\"\
+                      ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
+                      \   \"S\": \"${CollectionId}\"\n    },\n    \":td\": {\n   \
+                      \   \"S\": \"$input.params().querystring.get('timeDetected')\"\
+                      \n    }\n  }\n}\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "#set($inputRoot = $input.path('$'))\n{\n\
+                        \  \"results\": [\n    #foreach($elem in $inputRoot.Items)\
+                        \ {\n      \"angry\": \"$elem.angry.S\",\n      \"confused\"\
+                        : \"$elem.confused.S\",\n      \"happy\": \"$elem.happy.S\"\
+                        ,\n      \"sad\": \"$elem.sad.S\",\n      \"surprised\": \"\
+                        $elem.surprised.S\",\n    }#if($foreach.hasNext),#end\n  \
+                        \  #end\n  ]\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbWriteRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
+                      \  \"Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                      \n    },\n    \"TimeDetected\": {\n      \"N\": \"$input.json('$.timeDetected')\"\
+                      \n    },\n    \"Angry\": {\n      \"S\": \"$input.json('$.angry')\"\
+                      \n    },\n    \"Confused\": {\n      \"S\": \"$input.json('$.confused')\"\
+                      \n    },\n    \"Happy\": {\n      \"S\": \"$input.json('$.happy')\"\
+                      \n    },\n    \"Sad\": {\n      \"S\": \"$input.json('$.sad')\"\
+                      \n    },\n    \"Surprised\": {\n      \"S\": \"$input.json('$.surprised')\"\
+                      \n    }\n  }\n}\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "{\n  \"ok\": true\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+          /faces/detect:
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - RekognitionInvokeRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestParameters:
+                  integration.request.header.Content-Type: '''application/x-amz-json-1.1'''
+                  integration.request.header.X-Amz-Target: '''RekognitionService.DetectFaces'''
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"Attributes\": [\"ALL\"],\n  \"Image\": {\n  \
+                      \  \"Bytes\": $input.json('$.image')\n  }\n}\n"
+                responses:
+                  default:
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
           /faces/search:
             post:
               consumes:
@@ -171,15 +250,49 @@ Resources:
                   default:
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
-                        \    \"people\": [\n        #foreach($elem in $inputRoot.Items)\
-                        \ {\n            \"externalImageId\": \"$elem.ExternalImageId.S\"\
-                        ,\n            \"memberName\": \"$elem.MemberName.S\",\n \
-                        \           \"jobTitle\": \"$elem.JobTitle.S\"\n        }#if($foreach.hasNext),#end\n\
-                        \        #end\n    ]\n}\n"
+                        \  \"people\": [\n    #foreach($elem in $inputRoot.Items)\
+                        \ {\n      \"externalImageId\": \"$elem.ExternalImageId.S\"\
+                        ,\n      \"memberName\": \"$elem.MemberName.S\",\n      \"\
+                        jobTitle\": \"$elem.JobTitle.S\"\n    }#if($foreach.hasNext),#end\n\
+                        \    #end\n  ]\n}\n"
                     statusCode: '200'
                 type: aws
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - DbWriteRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"TableName\": \"${facesDynamoDBTable}\",\n  \"\
+                      Key\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                      \n    },\n    \"ExternalImageId\": {\n      \"S\": \"$input.json('$.externalImageId')\"\
+                      \n    }\n  },\n  \"UpdateExpression\": \"set TimeDetected =\
+                      \ :td\",\n  \"ExpressionAttributeValues\": {\n    \":td\": {\n\
+                      \      \"N\": \"$input.json('$.timeDetected')\"\n    }\n  }\n\
+                      }\n"
+                responses:
+                  default:
+                    responseTemplates:
+                      application/json: "{\n  \"ok\": true\n}\n"
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
         swagger: 2.0
       EndpointConfiguration: REGIONAL
       StageName: PROD
