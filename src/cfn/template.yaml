@@ -20,7 +20,6 @@ Parameters:
     Type: String
     Default: RekogDemo
     AllowedPattern : "^[a-zA-Z0-9_]*$"
-
 Resources:
   ###################################
   # Custom Resources
@@ -51,6 +50,13 @@ Resources:
     Properties:
       IdentityPoolName: !Sub RekogIdentityPool${CollectionId}
       AllowUnauthenticatedIdentities: true
+  cognitoIdentityPoolRole:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref cognitoIdentityPool
+      Roles:
+        authenticated: !GetAtt ApiGatewayInvokeRole.Arn
+        unauthenticated: !GetAtt ApiGatewayInvokeRole.Arn
   ###################################
   # DynamoDB tables
   ###################################
@@ -164,6 +170,19 @@ Resources:
                 - 'apigateway.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
+  ApiGatewayInvokeRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Federated:
+                - 'cognito-identity.amazonaws.com'
+            Action:
+              - 'sts:AssumeRoleWithWebIdentity'
   setupLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -222,12 +241,17 @@ Resources:
                   description: "200 response"
                   schema:
                     $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt DbReadRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                     responseTemplates:
                       application/json: |
                         #set($inputRoot = $input.path('$'))
@@ -273,12 +297,17 @@ Resources:
                   description: "200 response"
                   schema:
                     $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt  DbWriteRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                     responseTemplates:
                       application/json: |
                         {
@@ -326,12 +355,17 @@ Resources:
                   description: "200 response"
                   schema:
                     $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt RekognitionInvokeRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestParameters:
                   integration.request.header.X-Amz-Target: "'RekognitionService.DetectFaces'"
                   integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
@@ -357,12 +391,17 @@ Resources:
                   description: "200 response"
                   schema:
                     $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt RekognitionInvokeRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestParameters:
                   integration.request.header.X-Amz-Target: "'RekognitionService.SearchFacesByImage'"
                   integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
@@ -389,12 +428,17 @@ Resources:
                   description: "200 response"
                   schema:
                     $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt DbReadRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                     responseTemplates:
                       application/json: |
                         #set($inputRoot = $input.path('$'))
@@ -433,12 +477,17 @@ Resources:
                   description: "200 response"
                   schema:
                     $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
               x-amazon-apigateway-integration:
-                credentials: !GetAtt  DbWriteRole.Arn
+                credentials: !GetAtt DbWriteRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                     responseTemplates:
                       application/json: |
                         {
@@ -466,12 +515,6 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
-#         securityDefinitions:
-#           sigv4:
-#             type: "apiKey"
-#             name: "Authorization"
-#             in: "header"
-#             x-amazon-apigateway-authtype: "awsSigv4"
   ############################
   # Lambda functions
   ############################
@@ -486,9 +529,9 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: !GetAtt setupLambdaRole.Arn
-# #####################################################
-# # Outputs
-# #####################################################
+#####################################################
+# Outputs
+#####################################################
 Outputs:
   url:
     Value: !Sub https://s3-${AWS::Region}.amazonaws.com/${clientS3Bucket}/index.html
