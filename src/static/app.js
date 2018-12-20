@@ -233,19 +233,21 @@ app.controller("rekCtrl", [
             totals.surprised;
         });
 
-        $scope.happyometer =
-          Math.floor(
-            (totals.happy / totals.total) * 100 +
-              (totals.surprised / totals.total) * 100
-          ) / 10;
+        if (totals.total > 0) {
+          $scope.happyometer =
+            Math.floor(
+              (totals.happy / totals.total) * 100 +
+                (totals.surprised / totals.total) * 100
+            ) / 10;
 
-        $scope.aggregate = {
-          angry: Math.floor((totals.angry / totals.total) * 100),
-          confused: Math.floor((totals.confused / totals.total) * 100),
-          happy: Math.floor((totals.happy / totals.total) * 100),
-          sad: Math.floor((totals.sad / totals.total) * 100),
-          surprised: Math.floor((totals.surprised / totals.total) * 100)
-        };
+          $scope.aggregate = {
+            angry: Math.floor((totals.angry / totals.total) * 100),
+            confused: Math.floor((totals.confused / totals.total) * 100),
+            happy: Math.floor((totals.happy / totals.total) * 100),
+            sad: Math.floor((totals.sad / totals.total) * 100),
+            surprised: Math.floor((totals.surprised / totals.total) * 100)
+          };
+        }
       });
     };
 
