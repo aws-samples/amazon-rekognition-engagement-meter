@@ -683,16 +683,18 @@ app.directive("gaugeDir", [
             }
             var ratio = scale(newValue);
             var newAngle = config.minAngle + ratio * range;
-            pointer
-              .transition()
-              .duration(config.transitionMs)
-              .ease(d3.easeElastic)
-              .attr("transform", "rotate(" + newAngle + ")");
+
+            if (!isNaN(newAngle)) {
+              pointer
+                .transition()
+                .duration(config.transitionMs)
+                .ease(d3.easeElastic)
+                .attr("transform", "rotate(" + newAngle + ")");
+            }
           }
 
           that.update = update;
           configure(configuration);
-
           return that;
         };
 
@@ -704,8 +706,8 @@ app.directive("gaugeDir", [
           maxValue: 10,
           transitionMs: 4000
         });
-        powerGauge.render();
 
+        powerGauge.render();
         scope.$watch(
           "happyData",
           function(newVals, oldVals) {
