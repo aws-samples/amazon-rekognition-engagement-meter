@@ -3,7 +3,6 @@ import uuid from "uuid/v4";
 
 export default {
   addUser(params) {
-    console.log(params);
     const externalImageId = uuid();
     return request("/faces/add", "post", {
       externalImageId,

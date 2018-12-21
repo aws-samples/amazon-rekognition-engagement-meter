@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
-import { Grid, Col, Row } from "react-bootstrap";
+import { Col, Grid, Row } from "react-bootstrap";
 
 import AddUserModal from "./components/AddUserModal";
 import EngagementSummary from "./components/EngagementsSummary";
@@ -9,8 +9,8 @@ import PolarChart from "./components/PolarChart";
 import RekognitionButton from "./components/RekognitionButton";
 
 import faceDetailsMapper from "./utils/faceDetailsMapper";
-import gateway from "./utils/gateway";
 import getChartData from "./utils/getChartData";
+import gateway from "./utils/gateway";
 
 import "./App.css";
 
