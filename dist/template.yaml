@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Globals:
   Api:
     Cors:
-      AllowHeaders: '''*'''
+      AllowHeaders: '''Content-Type'''
       AllowMethods: '''*'''
       AllowOrigin: '''*'''
   Function:
@@ -103,6 +103,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -127,6 +129,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
@@ -149,6 +152,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -174,6 +179,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "{\n  \"ok\": true\n}\n"
@@ -191,6 +197,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -213,6 +221,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
@@ -228,6 +237,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -249,6 +260,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
@@ -264,6 +276,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -281,11 +295,12 @@ Resources:
                 requestTemplates:
                   application/json:
                     Fn::Sub: "{\n  \"CollectionId\": \"${CollectionId}\",\n  \"FaceMatchThreshold\"\
-                      : 85,\n  \"Image\": {\n    \"Bytes\": $input.json('$.image')\n\
+                      : 85,\n  \"MaxFaces\": 5,\n  \"Image\": {\n    \"Bytes\": $input.json('$.image')\n\
                       \  }\n}\n"
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
@@ -301,6 +316,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -322,6 +339,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
@@ -343,6 +361,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -365,6 +385,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "{\n  \"ok\": true\n}\n"

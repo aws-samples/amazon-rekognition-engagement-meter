@@ -13,7 +13,7 @@ Globals:
   Api:
     Cors:
       AllowMethods: "'*'"
-      AllowHeaders: "'*'"
+      AllowHeaders: "'Content-Type'"
       AllowOrigin: "'*'"
 Parameters:
   CollectionId:
@@ -244,6 +244,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt DbReadRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
@@ -252,6 +254,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                     responseTemplates:
                       application/json: |
                         #set($inputRoot = $input.path('$'))
@@ -300,6 +303,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt  DbWriteRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
@@ -308,6 +313,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                     responseTemplates:
                       application/json: |
                         {
@@ -358,6 +364,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt RekognitionInvokeRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
@@ -366,6 +374,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                 requestParameters:
                   integration.request.header.X-Amz-Target: "'RekognitionService.IndexFaces'"
                   integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
@@ -395,6 +404,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt RekognitionInvokeRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
@@ -403,6 +414,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                 requestParameters:
                   integration.request.header.X-Amz-Target: "'RekognitionService.DetectFaces'"
                   integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
@@ -431,6 +443,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt RekognitionInvokeRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
@@ -439,6 +453,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                 requestParameters:
                   integration.request.header.X-Amz-Target: "'RekognitionService.SearchFacesByImage'"
                   integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
@@ -447,6 +462,7 @@ Resources:
                     {
                       "CollectionId": "${CollectionId}",
                       "FaceMatchThreshold": 85,
+                      "MaxFaces": 5,
                       "Image": {
                         "Bytes": $input.json('$.image')
                       }
@@ -468,6 +484,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt DbReadRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
@@ -476,6 +494,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                     responseTemplates:
                       application/json: |
                         #set($inputRoot = $input.path('$'))
@@ -517,6 +536,8 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt DbWriteRole.Arn
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
@@ -525,6 +546,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
                     responseTemplates:
                       application/json: |
                         {
