@@ -3,16 +3,13 @@ import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
 import { Col, Grid, Row } from "react-bootstrap";
 
-import AddUserModal from "./components/AddUserModal";
 import EngagementSummary from "./components/EngagementsSummary";
+import Header from "./components/Header";
 import PolarChart from "./components/PolarChart";
-import RekognitionButton from "./components/RekognitionButton";
 
 import faceDetailsMapper from "./utils/faceDetailsMapper";
 import getChartData from "./utils/getChartData";
 import gateway from "./utils/gateway";
-
-import "./App.css";
 
 class App extends Component {
   constructor() {
@@ -106,6 +103,10 @@ class App extends Component {
   render() {
     return (
       <div className="App">
+        <Header
+          toggleRekognition={this.toggleRekognition}
+          addUser={this.addUser}
+        />
         <Grid>
           <Row>
             <Col md={8}>
@@ -123,14 +124,9 @@ class App extends Component {
                       width="100%"
                       height={320}
                     />
-                    <br />
-                    <div style={{ marginTop: "20px" }}>
-                      <RekognitionButton onClick={this.toggleRekognition} />
-                      <AddUserModal onSave={this.addUser} />
-                    </div>
                   </Col>
                 </Row>
-                <Row>
+                <Row style={{ marginTop: "20px" }}>
                   <Col md={4}>
                     <h3>Trends for last hour</h3>
                     <PolarChart

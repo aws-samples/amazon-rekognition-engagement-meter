@@ -83,8 +83,8 @@ class AddUserModal extends Component {
           </Modal.Header>
           <Modal.Body>
             <p>
-              By uploading an image and associating it with a name, Rekognition
-              is able to recognize that person in the future.
+              By uploading a picture and associating it with a name, Amazon
+              Rekognition can recognize that person.
             </p>
             <hr />
             <Alert
