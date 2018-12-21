@@ -20,11 +20,10 @@ export default props => (
   <div>
     {props.detectedFaces.map((face, index) => (
       <div key={index}>
-        <p>Detected person #{index + 1}</p>
         <Table responsive>
           <thead>
             <tr>
-              <th />
+              <th>Person #{index + 1}</th>
               <th />
             </tr>
           </thead>

@@ -15,7 +15,7 @@ export default props => {
       containerComponent={<VictoryContainer responsive={false} />}
       width={650}
       height={250}
-      padding={{ top: 60, bottom: 60, left: 50, right: 80 }}
+      padding={{ top: 60, bottom: 60, left: 50, right: 180 }}
     >
       <VictoryArea
         data={props.data}
