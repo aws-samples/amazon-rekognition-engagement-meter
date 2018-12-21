@@ -19,10 +19,6 @@ class RekognitionButton extends Component {
           });
           this.props.onClick(e);
         }}
-        style={{
-          margin: "20px",
-          padding: "10px"
-        }}
       >
         {this.state.started ? "Stop" : "Start"} Rekognition
       </Button>

@@ -10,6 +10,7 @@
     "react-scripts": "2.1.1",
     "react-svg-meters": "^0.1.7",
     "react-webcam": "^1.0.4",
+    "uuid": "^3.3.2",
     "victory": "^31.0.2"
   },
   "scripts": {

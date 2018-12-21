@@ -135,7 +135,7 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties:
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonRekognitionFullAccess
       AssumeRolePolicyDocument:
         Statement:
           - Effect: "Allow"
@@ -344,6 +344,43 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+          /faces/add:
+            post:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt RekognitionInvokeRole.Arn
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:rekognition:path//
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestParameters:
+                  integration.request.header.X-Amz-Target: "'RekognitionService.IndexFaces'"
+                  integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
+                requestTemplates:
+                  application/json: !Sub |
+                    {
+                      "CollectionId": "${CollectionId}",
+                      "ExternalImageId": $input.json('$.externalImageId'),
+                      "Image": {
+                        "Bytes": $input.json('$.image')
+                      }
+                    }
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                type: "aws"
           /faces/detect:
             post:
               consumes:
@@ -482,7 +519,7 @@ Resources:
                       type: "string"
               x-amazon-apigateway-integration:
                 credentials: !GetAtt DbWriteRole.Arn
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
                 responses:
                   default:
                     statusCode: "200"
@@ -497,18 +534,18 @@ Resources:
                   application/json: !Sub |
                     {
                       "TableName": "${facesDynamoDBTable}",
-                      "Key": {
+                      "Item": {
                         "CollectionId": {
                           "S": "${CollectionId}"
                         },
                         "ExternalImageId": {
-                          "S": "$input.json('$.externalImageId')"
-                        }
-                      },
-                      "UpdateExpression": "set TimeDetected = :td",
-                      "ExpressionAttributeValues": {
-                        ":td": {
-                          "N": "$input.json('$.timeDetected')"
+                          "S": $input.json('$.externalImageId')
+                        },
+                        "JobTitle": {
+                          "S": $input.json('$.jobTitle')
+                        },
+                        "MemberName": {
+                          "S": $input.json('$.memberName')
                         }
                       }
                     }

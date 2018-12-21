@@ -1,6 +1,22 @@
 import request from "./request";
+import uuid from "uuid/v4";
 
 export default {
+  addUser(params) {
+    console.log(params);
+    const externalImageId = uuid();
+    return request("/faces/add", "post", {
+      externalImageId,
+      image: params.image
+    }).then(() =>
+      request("/people", "post", {
+        externalImageId,
+        memberName: params.fullName,
+        jobTitle: params.jobTitle
+      })
+    );
+  },
+
   detectFaces(image) {
     return request("/faces/detect", "post", { image });
   },
@@ -13,7 +29,7 @@ export default {
   getPeople() {
     return request("/people");
   },
-  
+
   postEngagement(detectedFace) {
     const normalize = x => detectedFace.emotions[x] || 0;
 

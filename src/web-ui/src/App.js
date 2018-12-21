@@ -3,6 +3,7 @@ import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
 import { Grid, Col, Row } from "react-bootstrap";
 
+import AddUserModal from "./components/AddUserModal";
 import EngagementSummary from "./components/EngagementsSummary";
 import PolarChart from "./components/PolarChart";
 import RekognitionButton from "./components/RekognitionButton";
@@ -17,6 +18,7 @@ class App extends Component {
   constructor() {
     super();
 
+    this.addUser = this.addUser.bind(this);
     this.getSnapshot = this.getSnapshot.bind(this);
     this.toggleRekognition = this.toggleRekognition.bind(this);
 
@@ -34,6 +36,10 @@ class App extends Component {
       people: [],
       rekognizing: false
     };
+  }
+
+  addUser(params) {
+    return gateway.addUser(params);
   }
 
   getSnapshot() {
@@ -114,7 +120,11 @@ class App extends Component {
                 width="100%"
                 height={320}
               />
-              <RekognitionButton onClick={this.toggleRekognition} />
+              <br />
+              <div style={{ marginTop: "20px" }}>
+                <RekognitionButton onClick={this.toggleRekognition} />
+                <AddUserModal onSave={this.addUser} />
+              </div>
             </Col>
             <Col md={4}>
               <EngagementSummary
@@ -134,7 +144,7 @@ class App extends Component {
               />
             </Col>
             <Col md={6}>
-              <h3 style={{marginBottom: '40px'}}>Engagement Meter</h3>
+              <h3 style={{ marginBottom: "40px" }}>Engagement Meter</h3>
               <HalfCircleMeter
                 backgroundColor="#fff"
                 foregroundColor="#FF9900"
