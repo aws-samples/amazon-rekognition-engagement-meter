@@ -16,31 +16,37 @@ const filterAndSortEmotions = face =>
       } else return 0;
     });
 
-export default props =>
-  props.detectedFaces.map((face, index) => (
-    <div key={index}>
-      <p>Detected person #{index + 1}</p>
-      <Table responsive>
-        <thead>
-          <tr>
-            <th />
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Age</td>
-            <td>
-              {face.ageLow} - {face.ageHigh} years old
-            </td>
-          </tr>
-          {filterAndSortEmotions(face).map(({ emotion, confidence }) => (
-            <tr key={emotion}>
-              <td>{emotion}</td>
-              <td>{confidence}%</td>
+export default props => (
+  <div>
+    {props.detectedFaces.map((face, index) => (
+      <div key={index}>
+        <p>Detected person #{index + 1}</p>
+        <Table responsive>
+          <thead>
+            <tr>
+              <th />
+              <th />
             </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
-  ));
+          </thead>
+          <tbody>
+            <tr>
+              <td>Age</td>
+              <td>
+                {face.ageLow} - {face.ageHigh} years old
+              </td>
+            </tr>
+            {filterAndSortEmotions(face).map(({ emotion, confidence }) => (
+              <tr key={emotion}>
+                <td>{emotion}</td>
+                <td>{confidence}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+    ))}
+    {props.detectedPeople.map(person => (
+      <p key={person.externalImageId}>Welcome <b>{person.memberName}</b> ({person.jobTitle})</p>
+    ))}
+  </div>
+);

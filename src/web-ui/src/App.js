@@ -29,7 +29,9 @@ class App extends Component {
         surprised: 0
       },
       detectedFaces: [],
+      detectedPeople: [],
       happyometer: 50,
+      people: [],
       rekognizing: false
     };
   }
@@ -60,12 +62,23 @@ class App extends Component {
 
         this.setState({ detectedFaces }, () => {
           if (this.state.rekognizing) {
-            setTimeout(this.getSnapshot, 500);
+            setTimeout(this.getSnapshot, 300);
           }
         });
       });
 
-      gateway.searchFaces(b64Encoded).then(response => {});
+      gateway.searchFaces(b64Encoded).then(response => {
+        const detectedPeople = [];
+        if (response.data.FaceMatches) {
+          response.data.FaceMatches.forEach(match => {
+            const externalImageId = match.Face.ExternalImageId;
+            detectedPeople.push(
+              this.state.people.find(x => x.externalImageId === externalImageId)
+            );
+          });
+        }
+        this.setState({ detectedPeople });
+      });
     }
   }
 
@@ -76,9 +89,9 @@ class App extends Component {
       },
       () => {
         if (this.state.rekognizing) {
-          gateway
-            .getPeople()
-            .then(({ people }) => this.setState({ people }, this.getSnapshot));
+          gateway.getPeople().then(response => {
+            this.setState({ people: response.data.people }, this.getSnapshot);
+          });
         }
       }
     );
@@ -104,7 +117,10 @@ class App extends Component {
               <RekognitionButton onClick={this.toggleRekognition} />
             </Col>
             <Col md={4}>
-              <EngagementSummary detectedFaces={this.state.detectedFaces} />
+              <EngagementSummary
+                detectedFaces={this.state.detectedFaces}
+                detectedPeople={this.state.detectedPeople}
+              />
             </Col>
           </Row>
           <Row>
@@ -118,12 +134,12 @@ class App extends Component {
               />
             </Col>
             <Col md={6}>
-              <h3>Engagement Meter</h3>
+              <h3 style={{marginBottom: '40px'}}>Engagement Meter</h3>
               <HalfCircleMeter
                 backgroundColor="#fff"
                 foregroundColor="#FF9900"
                 value={this.state.happyometer}
-                size={300}
+                size={250}
               />
             </Col>
           </Row>
