@@ -119,10 +119,10 @@ Resources:
                     Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
                       \  \"IndexName\": \"gsiSentiment\",\n  \"KeyConditionExpression\"\
                       : \"CollectionId = :cid\",\n  \"FilterExpression\": \"TimeDetected\
-                      \ >= :td\",\n  \"ProjectionExpression\": \"angry,confused,happy,sad,surprised\"\
+                      \ >= :td\",\n  \"ProjectionExpression\": \"Angry,Confused,Happy,Sad,Surprised\"\
                       ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
                       \   \"S\": \"${CollectionId}\"\n    },\n    \":td\": {\n   \
-                      \   \"S\": \"$input.params().querystring.get('timeDetected')\"\
+                      \   \"N\": \"$input.params().querystring.get('timeDetected')\"\
                       \n    }\n  }\n}\n"
                 responses:
                   default:
@@ -131,11 +131,11 @@ Resources:
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
                         \  \"results\": [\n    #foreach($elem in $inputRoot.Items)\
-                        \ {\n      \"angry\": \"$elem.angry.S\",\n      \"confused\"\
-                        : \"$elem.confused.S\",\n      \"happy\": \"$elem.happy.S\"\
-                        ,\n      \"sad\": \"$elem.sad.S\",\n      \"surprised\": \"\
-                        $elem.surprised.S\",\n    }#if($foreach.hasNext),#end\n  \
-                        \  #end\n  ]\n}\n"
+                        \ {\n      \"angry\": \"$elem.Angry.S\",\n      \"confused\"\
+                        : \"$elem.Confused.S\",\n      \"happy\": \"$elem.Happy.S\"\
+                        ,\n      \"sad\": \"$elem.Sad.S\",\n      \"surprised\": \"\
+                        $elem.Surprised.S\"\n    }#if($foreach.hasNext),#end\n   \
+                        \ #end\n  ]\n}\n"
                     statusCode: '200'
                 type: aws
                 uri:
