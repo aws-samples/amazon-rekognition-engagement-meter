@@ -1356,7 +1356,7 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.8.0.tgz#f0e003d9ca9e7f59c7a508945d7b2ef9a04a542f"
   integrity sha512-ReZxvNHIOv88FlT7rxcXIIC0fPt4KZqZbOlivyWtXLt8ESx84zd3kMC6iK5jVeS2qt+g7ftS7ye4fi06X5rtRQ==
 
-axios@^0.18.0:
+axios@0.18.0:
   version "0.18.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
   integrity sha1-MtU+SFHv3AoRmTts0AB4nXDAUQI=
@@ -7814,7 +7814,7 @@ react-app-polyfill@^0.1.3:
     raf "3.4.0"
     whatwg-fetch "3.0.0"
 
-react-bootstrap@^0.32.4:
+react-bootstrap@0.32.4:
   version "0.32.4"
   resolved "https://registry.yarnpkg.com/react-bootstrap/-/react-bootstrap-0.32.4.tgz#8efc4cbfc4807215d75b7639bee0d324c8d740d1"
   integrity sha512-xj+JfaPOvnvr3ow0aHC7Y3HaBKZNR1mm361hVxVzVX3fcdJNIrfiodbQ0m9nLBpNxiKG6FTU2lq/SbTDYT2vew==
@@ -7862,7 +7862,7 @@ react-dev-utils@^6.1.1:
     strip-ansi "4.0.0"
     text-table "0.2.0"
 
-react-dom@^16.7.0:
+react-dom@16.7.0:
   version "16.7.0"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.7.0.tgz#a17b2a7ca89ee7390bc1ed5eb81783c7461748b8"
   integrity sha512-D0Ufv1ExCAmF38P2Uh1lwpminZFRXEINJe53zRAbm4KPwSyd6DY/uDoS0Blj9jvPpn1+wivKpZYc8aAAN/nAkg==
@@ -7966,7 +7966,7 @@ react-scripts@2.1.1:
   optionalDependencies:
     fsevents "1.2.4"
 
-react-svg-meters@^0.1.7:
+react-svg-meters@0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/react-svg-meters/-/react-svg-meters-0.1.7.tgz#d7fd15c288126ebad6c207286e22c23b8eb84fdb"
   integrity sha512-X1cvGbSFgG/326RcPMgm6DBXXJo51uqFZYkuPhFto3/77BQIncBnxj8rIyh4fy+8qhUb1Wf9LzmVKReN/kmTZg==
@@ -7983,14 +7983,14 @@ react-transition-group@^2.0.0, react-transition-group@^2.2.0:
     prop-types "^15.6.2"
     react-lifecycles-compat "^3.0.4"
 
-react-webcam@^1.0.4:
+react-webcam@1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/react-webcam/-/react-webcam-1.0.4.tgz#5ebaffc9fb63efb7f65e9bb6689b58769c15f8af"
   integrity sha512-qSwjpigexfazOWp5YTUWG4+94ijjt7E2dSLXss5pVYT5lBdQYOM5r1qUrUcb9XADSot4jvJHdhxa8/1+2BOo6g==
   dependencies:
     prop-types "^15.5.8"
 
-react@^16.7.0:
+react@16.7.0:
   version "16.7.0"
   resolved "https://registry.yarnpkg.com/react/-/react-16.7.0.tgz#b674ec396b0a5715873b350446f7ea0802ab6381"
   integrity sha512-StCz3QY8lxTb5cl2HJxjwLFOXPIFQp+p+hxQfc8WE0QiLfCtIlKj8/+5tjjKm8uSTlAW+fCPaavGFS06V9Ar3A==
@@ -9492,7 +9492,7 @@ utils-merge@1.0.1:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
-uuid@^3.0.1, uuid@^3.3.2:
+uuid@3.3.2, uuid@^3.0.1, uuid@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
@@ -9770,7 +9770,7 @@ victory-zoom-container@^31.0.2:
     prop-types "^15.5.8"
     victory-core "^31.0.2"
 
-victory@^31.0.2:
+victory@31.0.2:
   version "31.0.2"
   resolved "https://registry.yarnpkg.com/victory/-/victory-31.0.2.tgz#08c391a7f5370f8d502e55fc7709726d05aded03"
   integrity sha512-BpHn/n9jZ+PDrouBIeD7y9vP7ZbsJAZijZgUVAjAIs54E7do6ZHUQ8Paf0dH0BO4W3aRcql143sfyTgIOQjxww==
