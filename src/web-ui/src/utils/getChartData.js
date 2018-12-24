@@ -1,5 +1,5 @@
 export default data => {
-  const result = {
+  const output = {
     happyometer: null,
     aggregate: null
   };
@@ -28,13 +28,12 @@ export default data => {
   });
 
   if (totals.total > 0) {
-    result.happyometer =
-      Math.floor(
-        (totals.happy / totals.total) * 100 +
-          (totals.surprised / totals.total) * 100
-      );
+    output.happyometer = Math.floor(
+      (totals.happy / totals.total) * 100 +
+        (totals.surprised / totals.total) * 100
+    );
 
-    result.aggregate = {
+    output.aggregate = {
       angry: Math.floor((totals.angry / totals.total) * 100),
       confused: Math.floor((totals.confused / totals.total) * 100),
       happy: Math.floor((totals.happy / totals.total) * 100),
@@ -42,5 +41,5 @@ export default data => {
       surprised: Math.floor((totals.surprised / totals.total) * 100)
     };
   }
-  return result;
+  return output;
 };
