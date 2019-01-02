@@ -43,7 +43,7 @@ Resources:
           Id: !Sub RekogCorsRule${CollectionId}
           MaxAge: '3600'
   ###################################
-  # Cognito - for unauth API calls
+  # Cognito
   ###################################
   cognitoIdentityPool:
     Type: AWS::Cognito::IdentityPool
@@ -58,7 +58,7 @@ Resources:
         authenticated: !GetAtt ApiGatewayInvokeRole.Arn
         unauthenticated: !GetAtt ApiGatewayInvokeRole.Arn
   ###################################
-  # DynamoDB tables
+  # DynamoDB
   ###################################
   facesDynamoDBTable: 
     Type: AWS::DynamoDB::Table
@@ -593,5 +593,5 @@ Resources:
 #####################################################
 Outputs:
   url:
-    Value: !Sub https://s3-${AWS::Region}.amazonaws.com/${clientS3Bucket}/index.html
+    Value: !Sub https://${clientS3Bucket}.s3-${AWS::Region}.amazonaws.com/index.html
     Description: Engagement meter URL
