@@ -45,7 +45,7 @@ class App extends Component {
       const b64Encoded = image.split(",")[1];
 
       gateway.getEngagement().then(response => {
-        const chartData = getChartData(response.data);
+        const chartData = getChartData(response);
 
         if (chartData.happyometer) {
           this.setState({ happyometer: chartData.happyometer });
@@ -57,7 +57,7 @@ class App extends Component {
       });
 
       gateway.detectFaces(b64Encoded).then(response => {
-        const detectedFaces = response.data.FaceDetails.map(person => {
+        const detectedFaces = response.FaceDetails.map(person => {
           const result = faceDetailsMapper(person);
           gateway.postEngagement(result).then(() => {});
           return result;
@@ -72,8 +72,8 @@ class App extends Component {
 
       gateway.searchFaces(b64Encoded).then(response => {
         const detectedPeople = [];
-        if (response.data.FaceMatches) {
-          response.data.FaceMatches.forEach(match => {
+        if (response.FaceMatches) {
+          response.FaceMatches.forEach(match => {
             const externalImageId = match.Face.ExternalImageId;
             detectedPeople.push(
               this.state.people.find(x => x.externalImageId === externalImageId)
@@ -93,7 +93,7 @@ class App extends Component {
       () => {
         if (this.state.rekognizing) {
           gateway.getPeople().then(response => {
-            this.setState({ people: response.data.people }, this.getSnapshot);
+            this.setState({ people: response.people }, this.getSnapshot);
           });
         }
       }

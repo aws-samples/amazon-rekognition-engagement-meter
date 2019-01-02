@@ -13,7 +13,7 @@ Globals:
   Api:
     Cors:
       AllowMethods: "'*'"
-      AllowHeaders: "'Content-Type'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
       AllowOrigin: "'*'"
 Parameters:
   CollectionId:
@@ -290,6 +290,8 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
             post:
               consumes:
                 - "application/json"
@@ -350,6 +352,8 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
           /faces/add:
             post:
               consumes:
@@ -390,6 +394,8 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
           /faces/detect:
             post:
               consumes:
@@ -429,6 +435,8 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
           /faces/search:
             post:
               consumes:
@@ -470,6 +478,8 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
           /people:
             get:
               consumes:
@@ -523,6 +533,8 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
             post:
               consumes:
                 - "application/json"
@@ -574,6 +586,14 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 httpMethod: "POST"
                 type: "aws"
+              security:
+              - sigv4: []
+        securityDefinitions:
+          sigv4:
+            type: apiKey
+            name: Authorization
+            in: header
+            x-amazon-apigateway-authtype: awsSigv4
   ############################
   # Lambda functions
   ############################

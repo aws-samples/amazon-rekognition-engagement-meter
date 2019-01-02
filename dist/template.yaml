@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Globals:
   Api:
     Cors:
-      AllowHeaders: '''Content-Type'''
+      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
       AllowMethods: '''*'''
       AllowOrigin: '''*'''
   Function:
@@ -109,6 +109,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -158,6 +160,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -203,6 +207,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -243,6 +249,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -282,6 +290,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -322,6 +332,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -367,6 +379,8 @@ Resources:
                       type: string
                   schema:
                     $ref: '#/definitions/Empty'
+              security:
+              - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
                   Fn::GetAtt:
@@ -393,6 +407,12 @@ Resources:
                 type: aws
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+        securityDefinitions:
+          sigv4:
+            in: header
+            name: Authorization
+            type: apiKey
+            x-amazon-apigateway-authtype: awsSigv4
         swagger: 2.0
       EndpointConfiguration: REGIONAL
       StageName: PROD

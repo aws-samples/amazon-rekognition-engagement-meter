@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "axios": "0.18.0",
+    "aws-amplify": "^1.1.18",
     "react": "16.7.0",
     "react-bootstrap": "0.32.4",
     "react-dom": "16.7.0",
@@ -14,7 +14,7 @@
     "victory": "31.0.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "export HTTPS=true && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -2,6 +2,7 @@ const {
   API_GATEWAY,
   COGNITO_IDENTITY_POOL,
   FROM_BUCKET,
+  REGION,
   TO_BUCKET
 } = process.env;
 
@@ -54,7 +55,8 @@ module.exports = s3 => {
           Key: CONFIG_FILENAME,
           Body: `window.rekognitionSettings = ${JSON.stringify({
             apiGateway: API_GATEWAY,
-            cognitoIdentityPool: COGNITO_IDENTITY_POOL
+            cognitoIdentityPool: COGNITO_IDENTITY_POOL,
+            region: REGION
           })};`
         })
         .promise()
