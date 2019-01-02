@@ -485,7 +485,7 @@ Resources:
     Type: AWS::DynamoDB::Table
   lambdaSetup:
     Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/7b675b73e5acd3b9367e99242485e9eb
+      CodeUri: s3://matteo-rekognition-demo-test/08633aa47ed322d00804bd8fa693e8f1
       Description:
         Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
       FunctionName:
