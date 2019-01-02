@@ -23,7 +23,7 @@ Outputs:
   url:
     Description: Engagement meter URL
     Value:
-      Fn::Sub: https://s3-${AWS::Region}.amazonaws.com/${clientS3Bucket}/index.html
+      Fn::Sub: https://${clientS3Bucket}.s3-${AWS::Region}.amazonaws.com/index.html
 Parameters:
   CollectionId:
     AllowedPattern: ^[a-zA-Z0-9_]*$
@@ -485,7 +485,7 @@ Resources:
     Type: AWS::DynamoDB::Table
   lambdaSetup:
     Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/f1aa4fd53c55456dc63522d016500e26
+      CodeUri: s3://matteo-rekognition-demo-test/08633aa47ed322d00804bd8fa693e8f1
       Description:
         Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
       FunctionName:

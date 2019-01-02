@@ -6,41 +6,43 @@ const {
   TO_BUCKET
 } = process.env;
 
-const STATIC_FILES = [
-  "app.js",
-  "index.html",
-  "jpeg_camera_update_for_safari.js",
-  "jpeg_camera_with_dependencies.min.js",
-  "jpeg_camera.swf",
-  "style.css"
-];
 const CONFIG_FILENAME = "settings.js";
+const FROM_PREFIX = "static/";
 
 module.exports = s3 => {
   const copyFile = params => s3.copyObject(params).promise();
-
   const deleteFile = params => s3.deleteObject(params).promise();
+  const listFiles = params => s3.listObjects(params).promise();
 
   return {
     copyFiles: () =>
-      Promise.all(
-        STATIC_FILES.map(file =>
-          copyFile({
-            ACL: "public-read",
-            Bucket: TO_BUCKET,
-            CopySource: `${FROM_BUCKET}/static/${file}`,
-            Key: file
-          })
+      listFiles({
+        Bucket: FROM_BUCKET,
+        Prefix: FROM_PREFIX
+      }).then(result =>
+        Promise.all(
+          result.Contents.map(file =>
+            copyFile({
+              ACL: "public-read",
+              Bucket: TO_BUCKET,
+              CopySource: `${FROM_BUCKET}/${file.Key}`,
+              Key: file.Key.slice(FROM_PREFIX.length)
+            })
+          )
         )
       ),
 
     removeFiles: () =>
-      Promise.all(
-        [CONFIG_FILENAME, ...STATIC_FILES].map(file =>
-          deleteFile({
-            Bucket: TO_BUCKET,
-            Key: file
-          })
+      listFiles({
+        Bucket: TO_BUCKET
+      }).then(result =>
+        Promise.all(
+          result.Contents.map(file => file.Key).map(file =>
+            deleteFile({
+              Bucket: TO_BUCKET,
+              Key: file
+            })
+          )
         )
       ),
 
