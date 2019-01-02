@@ -35,17 +35,16 @@ module.exports = s3 => {
     removeFiles: () =>
       listFiles({
         Bucket: TO_BUCKET
-      }).then(result => {
-        const files = result.Contents.map(file => file.Key);
-        return Promise.all(
-          [CONFIG_FILENAME, ...files].map(file =>
+      }).then(result =>
+        Promise.all(
+          result.Contents.map(file => file.Key).map(file =>
             deleteFile({
               Bucket: TO_BUCKET,
               Key: file
             })
           )
-        );
-      }),
+        )
+      ),
 
     writeSettings: () =>
       s3
