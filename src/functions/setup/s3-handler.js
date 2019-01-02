@@ -36,7 +36,7 @@ module.exports = s3 => {
       listFiles({
         Bucket: TO_BUCKET
       }).then(result => {
-        const files = result.Contents.map(file => file.key);
+        const files = result.Contents.map(file => file.Key);
         return Promise.all(
           [CONFIG_FILENAME, ...files].map(file =>
             deleteFile({
