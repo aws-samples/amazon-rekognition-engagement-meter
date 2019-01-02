@@ -2,3 +2,10 @@
 node_modules
 src/static/settings.js
 scripts/test.sh
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+src/web-ui/build
+src/web-ui/public/settings.js

@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Globals:
   Api:
     Cors:
-      AllowHeaders: '''*'''
+      AllowHeaders: '''Content-Type'''
       AllowMethods: '''*'''
       AllowOrigin: '''*'''
   Function:
@@ -80,7 +80,7 @@ Resources:
             Service:
             - apigateway.amazonaws.com
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess
+      - arn:aws:iam::aws:policy/AmazonRekognitionFullAccess
     Type: AWS::IAM::Role
   RestApi:
     Name:
@@ -103,6 +103,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -127,6 +129,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
@@ -149,6 +152,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -174,6 +179,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "{\n  \"ok\": true\n}\n"
@@ -181,6 +187,46 @@ Resources:
                 type: aws
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+          /faces/add:
+            post:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  headers:
+                    Access-Control-Allow-Headers:
+                      type: string
+                    Access-Control-Allow-Origin:
+                      type: string
+                  schema:
+                    $ref: '#/definitions/Empty'
+              x-amazon-apigateway-integration:
+                credentials:
+                  Fn::GetAtt:
+                  - RekognitionInvokeRole
+                  - Arn
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                requestParameters:
+                  integration.request.header.Content-Type: '''application/x-amz-json-1.1'''
+                  integration.request.header.X-Amz-Target: '''RekognitionService.IndexFaces'''
+                requestTemplates:
+                  application/json:
+                    Fn::Sub: "{\n  \"CollectionId\": \"${CollectionId}\",\n  \"ExternalImageId\"\
+                      : $input.json('$.externalImageId'),\n  \"Image\": {\n    \"\
+                      Bytes\": $input.json('$.image')\n  }\n}\n"
+                responses:
+                  default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
+                    statusCode: '200'
+                type: aws
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
           /faces/detect:
             post:
               consumes:
@@ -191,6 +237,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -212,6 +260,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
@@ -227,6 +276,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -244,11 +295,12 @@ Resources:
                 requestTemplates:
                   application/json:
                     Fn::Sub: "{\n  \"CollectionId\": \"${CollectionId}\",\n  \"FaceMatchThreshold\"\
-                      : 85,\n  \"Image\": {\n    \"Bytes\": $input.json('$.image')\n\
+                      : 85,\n  \"MaxFaces\": 5,\n  \"Image\": {\n    \"Bytes\": $input.json('$.image')\n\
                       \  }\n}\n"
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     statusCode: '200'
                 type: aws
@@ -264,6 +316,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -285,6 +339,7 @@ Resources:
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "#set($inputRoot = $input.path('$'))\n{\n\
@@ -306,6 +361,8 @@ Resources:
                 '200':
                   description: 200 response
                   headers:
+                    Access-Control-Allow-Headers:
+                      type: string
                     Access-Control-Allow-Origin:
                       type: string
                   schema:
@@ -320,22 +377,22 @@ Resources:
                 requestTemplates:
                   application/json:
                     Fn::Sub: "{\n  \"TableName\": \"${facesDynamoDBTable}\",\n  \"\
-                      Key\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
-                      \n    },\n    \"ExternalImageId\": {\n      \"S\": \"$input.json('$.externalImageId')\"\
-                      \n    }\n  },\n  \"UpdateExpression\": \"set TimeDetected =\
-                      \ :td\",\n  \"ExpressionAttributeValues\": {\n    \":td\": {\n\
-                      \      \"N\": \"$input.json('$.timeDetected')\"\n    }\n  }\n\
-                      }\n"
+                      Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                      \n    },\n    \"ExternalImageId\": {\n      \"S\": $input.json('$.externalImageId')\n\
+                      \    },\n    \"JobTitle\": {\n      \"S\": $input.json('$.jobTitle')\n\
+                      \    },\n    \"MemberName\": {\n      \"S\": $input.json('$.memberName')\n\
+                      \    }\n  }\n}\n"
                 responses:
                   default:
                     responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
                       application/json: "{\n  \"ok\": true\n}\n"
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
         swagger: 2.0
       EndpointConfiguration: REGIONAL
       StageName: PROD
