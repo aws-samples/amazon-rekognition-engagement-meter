@@ -7,7 +7,7 @@ Globals:
         API_GATEWAY: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD
         COGNITO_IDENTITY_POOL: !Ref CognitoIdentityPool
         COLLECTION_ID: !Ref CollectionId
-        FROM_BUCKET: matteo-rekognition-demo-test
+        FROM_BUCKET: rekognition-engagement-meter
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
   Api:
