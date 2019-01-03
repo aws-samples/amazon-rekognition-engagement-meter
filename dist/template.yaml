@@ -11,19 +11,19 @@ Globals:
         API_GATEWAY:
           Fn::Sub: https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD
         COGNITO_IDENTITY_POOL:
-          Ref: cognitoIdentityPool
+          Ref: CognitoIdentityPool
         COLLECTION_ID:
           Ref: CollectionId
         FROM_BUCKET: matteo-rekognition-demo-test
         REGION:
           Ref: AWS::Region
         TO_BUCKET:
-          Ref: clientS3Bucket
+          Ref: WebUIBucket
 Outputs:
   url:
-    Description: Engagement meter URL
+    Description: Engagement Meter URL
     Value:
-      Fn::Sub: https://${clientS3Bucket}.s3-${AWS::Region}.amazonaws.com/index.html
+      Fn::Sub: https://${WebUIBucket}.s3-${AWS::Region}.amazonaws.com/index.html
 Parameters:
   CollectionId:
     AllowedPattern: ^[a-zA-Z0-9_]*$
@@ -42,6 +42,57 @@ Resources:
             - cognito-identity.amazonaws.com
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+    Type: AWS::IAM::Role
+  CognitoIdentityPool:
+    Properties:
+      AllowUnauthenticatedIdentities: true
+      IdentityPoolName:
+        Fn::Sub: RekogIdentityPool${CollectionId}
+    Type: AWS::Cognito::IdentityPool
+  CognitoIdentityPoolRole:
+    Properties:
+      IdentityPoolId:
+        Ref: CognitoIdentityPool
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+          - ApiGatewayInvokeRole
+          - Arn
+        unauthenticated:
+          Fn::GetAtt:
+          - ApiGatewayInvokeRole
+          - Arn
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+  CustomResourceRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action: s3:*
+            Effect: Allow
+            Resource: '*'
+        PolicyName: RekogDemo-setup-S3-fc
+      - PolicyDocument:
+          Statement:
+          - Action: rekognition:*
+            Effect: Allow
+            Resource: '*'
+        PolicyName: RekogDemo-createRekColl
+      - PolicyDocument:
+          Statement:
+          - Action: logs:*
+            Effect: Allow
+            Resource: arn:aws:logs:*:*:*
+        PolicyName: RekogDemo-cloudwatch-logs
     Type: AWS::IAM::Role
   DbReadRole:
     Properties:
@@ -69,6 +120,54 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
     Type: AWS::IAM::Role
+  FacesDynamoTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: CollectionId
+        AttributeType: S
+      - AttributeName: ExternalImageId
+        AttributeType: S
+      - AttributeName: MemberName
+        AttributeType: S
+      - AttributeName: JobTitle
+        AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+      - IndexName: geGSI
+        KeySchema:
+        - AttributeName: JobTitle
+          KeyType: HASH
+        - AttributeName: MemberName
+          KeyType: RANGE
+        Projection:
+          NonKeyAttributes:
+          - CollectionId
+          - ExternalImageId
+          ProjectionType: INCLUDE
+      KeySchema:
+      - AttributeName: CollectionId
+        KeyType: HASH
+      - AttributeName: ExternalImageId
+        KeyType: RANGE
+      TableName:
+        Fn::Sub: RekogFaces${CollectionId}
+    Type: AWS::DynamoDB::Table
+  LambdaSetup:
+    Properties:
+      CodeUri: s3://matteo-rekognition-demo-test/08633aa47ed322d00804bd8fa693e8f1
+      Description:
+        Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
+      FunctionName:
+        Fn::Sub: RekogDemoSetup${CollectionId}
+      Handler: index.handler
+      MemorySize: 128
+      Role:
+        Fn::GetAtt:
+        - CustomResourceRole
+        - Arn
+      Runtime: nodejs8.10
+      Timeout: 30
+    Type: AWS::Serverless::Function
   RekognitionInvokeRole:
     Properties:
       AssumeRolePolicyDocument:
@@ -120,8 +219,8 @@ Resources:
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
-                      \  \"IndexName\": \"gsiSentiment\",\n  \"KeyConditionExpression\"\
+                    Fn::Sub: "{\n  \"TableName\": \"${SentimentDynamoTable}\",\n \
+                      \ \"IndexName\": \"gsiSentiment\",\n  \"KeyConditionExpression\"\
                       : \"CollectionId = :cid\",\n  \"FilterExpression\": \"TimeDetected\
                       \ >= :td\",\n  \"ProjectionExpression\": \"Angry,Confused,Happy,Sad,Surprised\"\
                       ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
@@ -171,8 +270,8 @@ Resources:
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${sentimentDynamoDBTable}\",\n\
-                      \  \"Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                    Fn::Sub: "{\n  \"TableName\": \"${SentimentDynamoTable}\",\n \
+                      \ \"Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
                       \n    },\n    \"TimeDetected\": {\n      \"N\": \"$input.json('$.timeDetected')\"\
                       \n    },\n    \"Angry\": {\n      \"S\": \"$input.json('$.angry')\"\
                       \n    },\n    \"Confused\": {\n      \"S\": \"$input.json('$.confused')\"\
@@ -343,11 +442,10 @@ Resources:
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${facesDynamoDBTable}\",\n  \"\
-                      KeyConditionExpression\": \"CollectionId = :cid\",\n  \"ProjectionExpression\"\
-                      : \"MemberName,JobTitle,ExternalImageId\",\n  \"ExpressionAttributeValues\"\
-                      : {\n    \":cid\": {\n      \"S\": \"${CollectionId}\"\n   \
-                      \ }\n  }\n}\n"
+                    Fn::Sub: "{\n  \"TableName\": \"${FacesDynamoTable}\",\n  \"KeyConditionExpression\"\
+                      : \"CollectionId = :cid\",\n  \"ProjectionExpression\": \"MemberName,JobTitle,ExternalImageId\"\
+                      ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
+                      \   \"S\": \"${CollectionId}\"\n    }\n  }\n}\n"
                 responses:
                   default:
                     responseParameters:
@@ -390,8 +488,8 @@ Resources:
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${facesDynamoDBTable}\",\n  \"\
-                      Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
+                    Fn::Sub: "{\n  \"TableName\": \"${FacesDynamoTable}\",\n  \"Item\"\
+                      : {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
                       \n    },\n    \"ExternalImageId\": {\n      \"S\": $input.json('$.externalImageId')\n\
                       \    },\n    \"JobTitle\": {\n      \"S\": $input.json('$.jobTitle')\n\
                       \    },\n    \"MemberName\": {\n      \"S\": $input.json('$.memberName')\n\
@@ -417,89 +515,7 @@ Resources:
       EndpointConfiguration: REGIONAL
       StageName: PROD
     Type: AWS::Serverless::Api
-  clientS3Bucket:
-    Properties:
-      CorsConfiguration:
-        CorsRules:
-        - AllowedHeaders:
-          - '*'
-          AllowedMethods:
-          - GET
-          AllowedOrigins:
-          - '*'
-          Id:
-            Fn::Sub: RekogCorsRule${CollectionId}
-          MaxAge: '3600'
-    Type: AWS::S3::Bucket
-  cognitoIdentityPool:
-    Properties:
-      AllowUnauthenticatedIdentities: true
-      IdentityPoolName:
-        Fn::Sub: RekogIdentityPool${CollectionId}
-    Type: AWS::Cognito::IdentityPool
-  cognitoIdentityPoolRole:
-    Properties:
-      IdentityPoolId:
-        Ref: cognitoIdentityPool
-      Roles:
-        authenticated:
-          Fn::GetAtt:
-          - ApiGatewayInvokeRole
-          - Arn
-        unauthenticated:
-          Fn::GetAtt:
-          - ApiGatewayInvokeRole
-          - Arn
-    Type: AWS::Cognito::IdentityPoolRoleAttachment
-  facesDynamoDBTable:
-    Properties:
-      AttributeDefinitions:
-      - AttributeName: CollectionId
-        AttributeType: S
-      - AttributeName: ExternalImageId
-        AttributeType: S
-      - AttributeName: MemberName
-        AttributeType: S
-      - AttributeName: JobTitle
-        AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      GlobalSecondaryIndexes:
-      - IndexName: geGSI
-        KeySchema:
-        - AttributeName: JobTitle
-          KeyType: HASH
-        - AttributeName: MemberName
-          KeyType: RANGE
-        Projection:
-          NonKeyAttributes:
-          - CollectionId
-          - ExternalImageId
-          ProjectionType: INCLUDE
-      KeySchema:
-      - AttributeName: CollectionId
-        KeyType: HASH
-      - AttributeName: ExternalImageId
-        KeyType: RANGE
-      TableName:
-        Fn::Sub: RekogFaces${CollectionId}
-    Type: AWS::DynamoDB::Table
-  lambdaSetup:
-    Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/08633aa47ed322d00804bd8fa693e8f1
-      Description:
-        Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
-      FunctionName:
-        Fn::Sub: RekogDemoSetup${CollectionId}
-      Handler: index.handler
-      MemorySize: 128
-      Role:
-        Fn::GetAtt:
-        - setupLambdaRole
-        - Arn
-      Runtime: nodejs8.10
-      Timeout: 30
-    Type: AWS::Serverless::Function
-  sentimentDynamoDBTable:
+  SentimentDynamoTable:
     Properties:
       AttributeDefinitions:
       - AttributeName: CollectionId
@@ -522,44 +538,27 @@ Resources:
       TableName:
         Fn::Sub: RekogSentiment${CollectionId}
     Type: AWS::DynamoDB::Table
-  setupLambdaRole:
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action:
-          - sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-      Path: /
-      Policies:
-      - PolicyDocument:
-          Statement:
-          - Action: s3:*
-            Effect: Allow
-            Resource: '*'
-        PolicyName: RekogDemo-setup-S3-fc
-      - PolicyDocument:
-          Statement:
-          - Action: rekognition:*
-            Effect: Allow
-            Resource: '*'
-        PolicyName: RekogDemo-createRekColl
-      - PolicyDocument:
-          Statement:
-          - Action: logs:*
-            Effect: Allow
-            Resource: arn:aws:logs:*:*:*
-        PolicyName: RekogDemo-cloudwatch-logs
-    Type: AWS::IAM::Role
-  setupS3AndRekognition:
+  SetupRekognitionAndWebUI:
     Properties:
       Region:
         Ref: AWS::Region
       ServiceToken:
         Fn::GetAtt:
-        - lambdaSetup
+        - LambdaSetup
         - Arn
     Type: Custom::Setup
+  WebUIBucket:
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          AllowedOrigins:
+          - '*'
+          Id:
+            Fn::Sub: RekogCorsRule${CollectionId}
+          MaxAge: '3600'
+    Type: AWS::S3::Bucket
 Transform: AWS::Serverless-2016-10-31
