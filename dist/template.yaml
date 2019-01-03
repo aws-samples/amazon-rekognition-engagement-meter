@@ -14,7 +14,7 @@ Globals:
           Ref: CognitoIdentityPool
         COLLECTION_ID:
           Ref: CollectionId
-        FROM_BUCKET: matteo-rekognition-demo-test
+        FROM_BUCKET: rekognition-engagement-meter
         REGION:
           Ref: AWS::Region
         TO_BUCKET:
@@ -154,7 +154,7 @@ Resources:
     Type: AWS::DynamoDB::Table
   LambdaSetup:
     Properties:
-      CodeUri: s3://matteo-rekognition-demo-test/08633aa47ed322d00804bd8fa693e8f1
+      CodeUri: s3://rekognition-engagement-meter/0f6744a4a3355f2ac9d39aa8911c7504
       Description:
         Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
       FunctionName:
