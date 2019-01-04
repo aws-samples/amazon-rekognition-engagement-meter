@@ -7,7 +7,7 @@ This repo could be a useful playground to learn about Amazon Rekognition and oth
 
 ### Usage
 
-The demo is available as [AWS CloudFormation](https://aws.amazon.com/cloudformation) template.
+The demo is available as an [AWS CloudFormation](https://aws.amazon.com/cloudformation) template.
 [Download the template](https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml) or Deploy using the AWS Console:
 
 |Region|Launch Template|
