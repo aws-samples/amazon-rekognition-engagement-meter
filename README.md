@@ -29,7 +29,7 @@ In the Parameters section, you must provide a *CollectionId*. You can customize 
 
 Leave the rest of the options as is and check the "*I acknowledge that AWS CloudFormation might create IAM resources*" box and the "*I acknowledge that AWS CloudFormation might create IAM resources with custom names*" box. This is to allow CloudFormation to create a Role to allow access to resources needed by the stack and name the resources in a dynamic way.
 
-Scroll to the bottom and click *Create* to launch your stack.
+Scroll to the bottom and click *Create Change Set* and then *Execute* to launch your stack.
 
 Your stack will take some time to launch. You can track its progress in the "Events" tab. When it is done creating, the status will change from "*CREATE_IN_PROGRESS*" to "*CREATE_COMPLETE*".
 
