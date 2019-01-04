@@ -42,7 +42,9 @@ The engagement meter uses [Amazon Rekognition](https://aws.amazon.com/rekognitio
 ### User flow
 
 
-There are three main user flows: the **"add user"** flow (*yellow*) is triggered when clicking the *"Add user"* button; the **"added users recognition"** flow (*green*) and the **"sentiment analysis"** flow (*blue*) are triggered when clicking the *"Start Rekognition"* button and cyclically repeat until the *"Stop Rekognition"* button is clicked.
+There are three main user flows:
+* the **"add user"** flow (*yellow*) is triggered when clicking the *"Add user"* button
+* the **"added users recognition"** flow (*green*) and the **"sentiment analysis"** flow (*blue*) are both triggered when clicking the *"Start Rekognition"* button and repeat until the *"Stop Rekognition"* button is clicked.
 
 The diagram below represents the API calls performed by Amplify, which takes care of authenticating all the calls to the API Gateway using Cognito.
 
