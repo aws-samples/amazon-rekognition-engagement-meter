@@ -1,0 +1,31 @@
+{
+  "name": "amazon-rekognition-engagement-meter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "js-yaml": "^3.12.0",
+    "uglify-es": "^3.3.9",
+    "uglifyjs": "^2.4.11",
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build-lambda": "webpack-cli --config ./scripts/webpack.js && uglifyjs ./scripts/temp/setup.js -o ./scripts/temp/setup.js -c -m",
+    "inline-lambda": "node ./scripts/inline_lambda.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aws-samples/amazon-rekognition-engagement-meter.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aws-samples/amazon-rekognition-engagement-meter/issues"
+  },
+  "homepage": "https://github.com/aws-samples/amazon-rekognition-engagement-meter#readme"
+}

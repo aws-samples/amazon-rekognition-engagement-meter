@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 Globals:
   Api:
     Cors:
@@ -9,24 +9,24 @@ Globals:
     Environment:
       Variables:
         API_GATEWAY:
-          Fn::Sub: https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD
+          'Fn::Sub': 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/PROD'
         COGNITO_IDENTITY_POOL:
           Ref: CognitoIdentityPool
         COLLECTION_ID:
           Ref: CollectionId
         FROM_BUCKET: rekognition-engagement-meter
         REGION:
-          Ref: AWS::Region
+          Ref: 'AWS::Region'
         TO_BUCKET:
           Ref: WebUIBucket
 Outputs:
   url:
     Description: Engagement Meter URL
     Value:
-      Fn::Sub: https://${WebUIBucket}.s3-${AWS::Region}.amazonaws.com/index.html
+      'Fn::Sub': 'https://${WebUIBucket}.s3-${AWS::Region}.amazonaws.com/index.html'
 Parameters:
   CollectionId:
-    AllowedPattern: ^[a-zA-Z0-9_]*$
+    AllowedPattern: '^[a-zA-Z0-9_]*$'
     Default: RekogDemo
     Type: String
 Resources:
@@ -34,170 +34,205 @@ Resources:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRoleWithWebIdentity
-          Effect: Allow
-          Principal:
-            Federated:
-            - cognito-identity.amazonaws.com
+          - Action:
+              - 'sts:AssumeRoleWithWebIdentity'
+            Effect: Allow
+            Principal:
+              Federated:
+                - cognito-identity.amazonaws.com
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
-    Type: AWS::IAM::Role
+        - 'arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess'
+    Type: 'AWS::IAM::Role'
   CognitoIdentityPool:
     Properties:
       AllowUnauthenticatedIdentities: true
       IdentityPoolName:
-        Fn::Sub: RekogIdentityPool${CollectionId}
-    Type: AWS::Cognito::IdentityPool
+        'Fn::Sub': 'RekogIdentityPool${CollectionId}'
+    Type: 'AWS::Cognito::IdentityPool'
   CognitoIdentityPoolRole:
     Properties:
       IdentityPoolId:
         Ref: CognitoIdentityPool
       Roles:
         authenticated:
-          Fn::GetAtt:
-          - ApiGatewayInvokeRole
-          - Arn
+          'Fn::GetAtt':
+            - ApiGatewayInvokeRole
+            - Arn
         unauthenticated:
-          Fn::GetAtt:
-          - ApiGatewayInvokeRole
-          - Arn
-    Type: AWS::Cognito::IdentityPoolRoleAttachment
+          'Fn::GetAtt':
+            - ApiGatewayInvokeRole
+            - Arn
+    Type: 'AWS::Cognito::IdentityPoolRoleAttachment'
   CustomResourceRole:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
       Path: /
       Policies:
-      - PolicyDocument:
-          Statement:
-          - Action: s3:*
-            Effect: Allow
-            Resource: '*'
-        PolicyName: RekogDemo-setup-S3-fc
-      - PolicyDocument:
-          Statement:
-          - Action: rekognition:*
-            Effect: Allow
-            Resource: '*'
-        PolicyName: RekogDemo-createRekColl
-      - PolicyDocument:
-          Statement:
-          - Action: logs:*
-            Effect: Allow
-            Resource: arn:aws:logs:*:*:*
-        PolicyName: RekogDemo-cloudwatch-logs
-    Type: AWS::IAM::Role
+        - PolicyDocument:
+            Statement:
+              - Action: 's3:*'
+                Effect: Allow
+                Resource: '*'
+          PolicyName: RekogDemo-setup-S3-fc
+        - PolicyDocument:
+            Statement:
+              - Action: 'rekognition:*'
+                Effect: Allow
+                Resource: '*'
+          PolicyName: RekogDemo-createRekColl
+        - PolicyDocument:
+            Statement:
+              - Action: 'logs:*'
+                Effect: Allow
+                Resource: 'arn:aws:logs:*:*:*'
+          PolicyName: RekogDemo-cloudwatch-logs
+    Type: 'AWS::IAM::Role'
   DbReadRole:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service:
-            - apigateway.amazonaws.com
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
-    Type: AWS::IAM::Role
+        - 'arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess'
+    Type: 'AWS::IAM::Role'
   DbWriteRole:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service:
-            - apigateway.amazonaws.com
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-    Type: AWS::IAM::Role
+        - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
+    Type: 'AWS::IAM::Role'
   FacesDynamoTable:
     Properties:
       AttributeDefinitions:
-      - AttributeName: CollectionId
-        AttributeType: S
-      - AttributeName: ExternalImageId
-        AttributeType: S
-      - AttributeName: MemberName
-        AttributeType: S
-      - AttributeName: JobTitle
-        AttributeType: S
+        - AttributeName: CollectionId
+          AttributeType: S
+        - AttributeName: ExternalImageId
+          AttributeType: S
+        - AttributeName: MemberName
+          AttributeType: S
+        - AttributeName: JobTitle
+          AttributeType: S
       BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
-      - IndexName: geGSI
-        KeySchema:
-        - AttributeName: JobTitle
-          KeyType: HASH
-        - AttributeName: MemberName
-          KeyType: RANGE
-        Projection:
-          NonKeyAttributes:
-          - CollectionId
-          - ExternalImageId
-          ProjectionType: INCLUDE
+        - IndexName: geGSI
+          KeySchema:
+            - AttributeName: JobTitle
+              KeyType: HASH
+            - AttributeName: MemberName
+              KeyType: RANGE
+          Projection:
+            NonKeyAttributes:
+              - CollectionId
+              - ExternalImageId
+            ProjectionType: INCLUDE
       KeySchema:
-      - AttributeName: CollectionId
-        KeyType: HASH
-      - AttributeName: ExternalImageId
-        KeyType: RANGE
+        - AttributeName: CollectionId
+          KeyType: HASH
+        - AttributeName: ExternalImageId
+          KeyType: RANGE
       TableName:
-        Fn::Sub: RekogFaces${CollectionId}
-    Type: AWS::DynamoDB::Table
+        'Fn::Sub': 'RekogFaces${CollectionId}'
+    Type: 'AWS::DynamoDB::Table'
   LambdaSetup:
     Properties:
-      CodeUri: s3://rekognition-engagement-meter/0f6744a4a3355f2ac9d39aa8911c7504
       Description:
-        Fn::Sub: Custom Lambda resource for the ${CollectionId} Cloudformation Stack
+        'Fn::Sub': 'Custom Lambda resource for the ${CollectionId} Cloudformation Stack'
       FunctionName:
-        Fn::Sub: RekogDemoSetup${CollectionId}
+        'Fn::Sub': 'RekogDemoSetup${CollectionId}'
       Handler: index.handler
       MemorySize: 128
       Role:
-        Fn::GetAtt:
-        - CustomResourceRole
-        - Arn
+        'Fn::GetAtt':
+          - CustomResourceRole
+          - Arn
       Runtime: nodejs8.10
       Timeout: 30
-    Type: AWS::Serverless::Function
+      InlineCode: >-
+        module.exports=function(e){var t={};function o(n){if(t[n])return
+        t[n].exports;var r=t[n]={i:n,l:!1,exports:{}};return
+        e[n].call(r.exports,r,r.exports,o),r.l=!0,r.exports}return
+        o.m=e,o.c=t,o.d=function(e,t,n){o.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},o.r=function(e){"undefined"!=typeof
+        Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},o.t=function(e,t){if(1&t&&(e=o(e)),8&t)return
+        e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var
+        n=Object.create(null);if(o.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof
+        e)for(var r in e)o.d(n,r,function(t){return e[t]}.bind(null,r));return
+        n},o.n=function(e){var t=e&&e.__esModule?function(){return
+        e.default}:function(){return e};return
+        o.d(t,"a",t),t},o.o=function(e,t){return
+        Object.prototype.hasOwnProperty.call(e,t)},o.p="",o(o.s=0)}([function(e,t,o){e.exports=o(1)},function(e,t,o){const
+        n=o(2),r=o(3),s=o(4),c=o(7),{REGION:i}=process.env;t.handler=((e,t,o)=>{const{createCollection:l,deleteCollection:u}=r(new
+        n.Rekognition({region:i})),{copyFiles:a,removeFiles:p,writeSettings:d}=c(new
+        n.S3),{sendResponse:f}=s(e,t,o),g=e.RequestType;let
+        y;"Create"===g?(console.log("Creating
+        resources"),y=[a(),d(),l()]):"Delete"===g&&(console.log("Deleting
+        resources"),y=[p(),u()]),Promise.all(y).then(()=>(console.log("All
+        actions successfully performed"),f("SUCCESS",{Message:`Resources
+        successfully
+        ${g.toLowerCase()}d`}))).catch(e=>console.log(e)||f("FAILED"))})},function(e,t){e.exports=require("aws-sdk")},function(e,t){const{COLLECTION_ID:o}=process.env,n={CollectionId:o};e.exports=(e=>({createCollection:()=>e.createCollection(n).promise(),deleteCollection:()=>e.deleteCollection(n).promise()}))},function(e,t,o){e.exports=((e,t,n)=>{let
+        r;const s=e=>(clearTimeout(r),e&&(console.log("There was an
+        error"),console.log(e)),n(e)),c=(n,r)=>{const
+        c=JSON.stringify({Status:n,Reason:`Details:
+        ${t.logStreamName}`,PhysicalResourceId:t.logStreamName,StackId:e.StackId,RequestId:e.RequestId,LogicalResourceId:e.LogicalResourceId,Data:r}),i={url:e.ResponseURL,body:c,method:"PUT"};return
+        console.log(`Making HTTP request to ${e.ResponseURL}: ${c}`),(e=>{const
+        t=o(5),n=o(6),r=Object.assign({},n.parse(e.url),{method:e.method,headers:{"Content-Type":"","Content-Length":Buffer.byteLength(e.body)}});return
+        console.log(r),new Promise((o,n)=>{const s=t.request(r,e=>{const
+        t=[];if(200!==e.statusCode)return
+        n(e);e.setEncoding("utf8"),e.on("data",e=>t.push(e)),e.on("error",n),e.on("end",()=>o(Buffer.concat(t)))});s.write(e.body),s.end()})})(i).then(e=>(console.log(e),s())).catch(e=>s(e))};return
+        r=setTimeout(()=>c("FAILED").then(()=>n(new Error("Function timed
+        out"))),t.getRemainingTimeInMillis()-1e3),{sendResponse:c}})},function(e,t){e.exports=require("https")},function(e,t){e.exports=require("url")},function(e,t){const{API_GATEWAY:o,COGNITO_IDENTITY_POOL:n,FROM_BUCKET:r,REGION:s,TO_BUCKET:c}=process.env;e.exports=(e=>{const
+        t=t=>e.listObjects(t).promise();return{copyFiles:()=>t({Bucket:r,Prefix:"static/"}).then(t=>Promise.all(t.Contents.map(t=>(t=>e.copyObject(t).promise())({ACL:"public-read",Bucket:c,CopySource:`${r}/${t.Key}`,Key:t.Key.slice("static/".length)})))),removeFiles:()=>t({Bucket:c}).then(t=>Promise.all(t.Contents.map(e=>e.Key).map(t=>(t=>e.deleteObject(t).promise())({Bucket:c,Key:t})))),writeSettings:()=>e.putObject({ACL:"public-read",Bucket:c,Key:"settings.js",Body:`window.rekognitionSettings
+        =
+        ${JSON.stringify({apiGateway:o,cognitoIdentityPool:n,region:s})};`}).promise()}})}]);
+    Type: 'AWS::Serverless::Function'
   RekognitionInvokeRole:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service:
-            - apigateway.amazonaws.com
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/AmazonRekognitionFullAccess
-    Type: AWS::IAM::Role
+        - 'arn:aws:iam::aws:policy/AmazonRekognitionFullAccess'
+    Type: 'AWS::IAM::Role'
   RestApi:
     Name:
-      Fn::Sub: RekogDemo-${CollectionId}
+      'Fn::Sub': 'RekogDemo-${CollectionId}'
     Properties:
       DefinitionBody:
         basePath: /PROD
         info:
           title:
-            Fn::Sub: RekogDemo-${CollectionId}
-          version: 1.0
+            'Fn::Sub': 'RekogDemo-${CollectionId}'
+          version: 1
         paths:
           /engagement:
             get:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -209,46 +244,61 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - DbReadRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - DbReadRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${SentimentDynamoTable}\",\n \
-                      \ \"IndexName\": \"gsiSentiment\",\n  \"KeyConditionExpression\"\
-                      : \"CollectionId = :cid\",\n  \"FilterExpression\": \"TimeDetected\
-                      \ >= :td\",\n  \"ProjectionExpression\": \"Angry,Confused,Happy,Sad,Surprised\"\
-                      ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
-                      \   \"S\": \"${CollectionId}\"\n    },\n    \":td\": {\n   \
-                      \   \"N\": \"$input.params().querystring.get('timeDetected')\"\
-                      \n    }\n  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "TableName": "${SentimentDynamoTable}",
+                        "IndexName": "gsiSentiment",
+                        "KeyConditionExpression": "CollectionId = :cid",
+                        "FilterExpression": "TimeDetected >= :td",
+                        "ProjectionExpression": "Angry,Confused,Happy,Sad,Surprised",
+                        "ExpressionAttributeValues": {
+                          ":cid": {
+                            "S": "${CollectionId}"
+                          },
+                          ":td": {
+                            "N": "$input.params().querystring.get('timeDetected')"
+                          }
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
-                      application/json: "#set($inputRoot = $input.path('$'))\n{\n\
-                        \  \"results\": [\n    #foreach($elem in $inputRoot.Items)\
-                        \ {\n      \"angry\": \"$elem.Angry.S\",\n      \"confused\"\
-                        : \"$elem.Confused.S\",\n      \"happy\": \"$elem.Happy.S\"\
-                        ,\n      \"sad\": \"$elem.Sad.S\",\n      \"surprised\": \"\
-                        $elem.Surprised.S\"\n    }#if($foreach.hasNext),#end\n   \
-                        \ #end\n  ]\n}\n"
+                      application/json: |
+                        #set($inputRoot = $input.path('$'))
+                        {
+                          "results": [
+                            #foreach($elem in $inputRoot.Items) {
+                              "angry": "$elem.Angry.S",
+                              "confused": "$elem.Confused.S",
+                              "happy": "$elem.Happy.S",
+                              "sad": "$elem.Sad.S",
+                              "surprised": "$elem.Surprised.S"
+                            }#if($foreach.hasNext),#end
+                            #end
+                          ]
+                        }
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query'
             post:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -260,42 +310,63 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - DbWriteRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - DbWriteRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${SentimentDynamoTable}\",\n \
-                      \ \"Item\": {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
-                      \n    },\n    \"TimeDetected\": {\n      \"N\": \"$input.json('$.timeDetected')\"\
-                      \n    },\n    \"Angry\": {\n      \"S\": \"$input.json('$.angry')\"\
-                      \n    },\n    \"Confused\": {\n      \"S\": \"$input.json('$.confused')\"\
-                      \n    },\n    \"Happy\": {\n      \"S\": \"$input.json('$.happy')\"\
-                      \n    },\n    \"Sad\": {\n      \"S\": \"$input.json('$.sad')\"\
-                      \n    },\n    \"Surprised\": {\n      \"S\": \"$input.json('$.surprised')\"\
-                      \n    }\n  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "TableName": "${SentimentDynamoTable}",
+                        "Item": {
+                          "CollectionId": {
+                            "S": "${CollectionId}"
+                          },
+                          "TimeDetected": {
+                            "N": "$input.json('$.timeDetected')"
+                          },
+                          "Angry": {
+                            "S": "$input.json('$.angry')"
+                          },
+                          "Confused": {
+                            "S": "$input.json('$.confused')"
+                          },
+                          "Happy": {
+                            "S": "$input.json('$.happy')"
+                          },
+                          "Sad": {
+                            "S": "$input.json('$.sad')"
+                          },
+                          "Surprised": {
+                            "S": "$input.json('$.surprised')"
+                          }
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
-                      application/json: "{\n  \"ok\": true\n}\n"
+                      application/json: |
+                        {
+                          "ok": true
+                        }
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem'
           /faces/add:
             post:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -307,12 +378,12 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - RekognitionInvokeRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - RekognitionInvokeRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestParameters:
@@ -320,9 +391,14 @@ Resources:
                   integration.request.header.X-Amz-Target: '''RekognitionService.IndexFaces'''
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"CollectionId\": \"${CollectionId}\",\n  \"ExternalImageId\"\
-                      : $input.json('$.externalImageId'),\n  \"Image\": {\n    \"\
-                      Bytes\": $input.json('$.image')\n  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "CollectionId": "${CollectionId}",
+                        "ExternalImageId": $input.json('$.externalImageId'),
+                        "Image": {
+                          "Bytes": $input.json('$.image')
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
@@ -331,13 +407,13 @@ Resources:
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:rekognition:path//'
           /faces/detect:
             post:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -349,12 +425,12 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - RekognitionInvokeRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - RekognitionInvokeRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestParameters:
@@ -362,8 +438,13 @@ Resources:
                   integration.request.header.X-Amz-Target: '''RekognitionService.DetectFaces'''
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"Attributes\": [\"ALL\"],\n  \"Image\": {\n  \
-                      \  \"Bytes\": $input.json('$.image')\n  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "Attributes": ["ALL"],
+                        "Image": {
+                          "Bytes": $input.json('$.image')
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
@@ -372,13 +453,13 @@ Resources:
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:rekognition:path//'
           /faces/search:
             post:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -390,12 +471,12 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - RekognitionInvokeRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - RekognitionInvokeRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestParameters:
@@ -403,9 +484,15 @@ Resources:
                   integration.request.header.X-Amz-Target: '''RekognitionService.SearchFacesByImage'''
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"CollectionId\": \"${CollectionId}\",\n  \"FaceMatchThreshold\"\
-                      : 85,\n  \"MaxFaces\": 5,\n  \"Image\": {\n    \"Bytes\": $input.json('$.image')\n\
-                      \  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "CollectionId": "${CollectionId}",
+                        "FaceMatchThreshold": 85,
+                        "MaxFaces": 5,
+                        "Image": {
+                          "Bytes": $input.json('$.image')
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
@@ -414,13 +501,13 @@ Resources:
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:rekognition:path//
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:rekognition:path//'
           /people:
             get:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -432,41 +519,54 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - DbReadRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - DbReadRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${FacesDynamoTable}\",\n  \"KeyConditionExpression\"\
-                      : \"CollectionId = :cid\",\n  \"ProjectionExpression\": \"MemberName,JobTitle,ExternalImageId\"\
-                      ,\n  \"ExpressionAttributeValues\": {\n    \":cid\": {\n   \
-                      \   \"S\": \"${CollectionId}\"\n    }\n  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "TableName": "${FacesDynamoTable}",
+                        "KeyConditionExpression": "CollectionId = :cid",
+                        "ProjectionExpression": "MemberName,JobTitle,ExternalImageId",
+                        "ExpressionAttributeValues": {
+                          ":cid": {
+                            "S": "${CollectionId}"
+                          }
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
-                      application/json: "#set($inputRoot = $input.path('$'))\n{\n\
-                        \  \"people\": [\n    #foreach($elem in $inputRoot.Items)\
-                        \ {\n      \"externalImageId\": \"$elem.ExternalImageId.S\"\
-                        ,\n      \"memberName\": \"$elem.MemberName.S\",\n      \"\
-                        jobTitle\": \"$elem.JobTitle.S\"\n    }#if($foreach.hasNext),#end\n\
-                        \    #end\n  ]\n}\n"
+                      application/json: |
+                        #set($inputRoot = $input.path('$'))
+                        {
+                          "people": [
+                            #foreach($elem in $inputRoot.Items) {
+                              "externalImageId": "$elem.ExternalImageId.S",
+                              "memberName": "$elem.MemberName.S",
+                              "jobTitle": "$elem.JobTitle.S"
+                            }#if($foreach.hasNext),#end
+                            #end
+                          ]
+                        }
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query'
             post:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses:
                 '200':
                   description: 200 response
@@ -478,87 +578,102 @@ Resources:
                   schema:
                     $ref: '#/definitions/Empty'
               security:
-              - sigv4: []
+                - sigv4: []
               x-amazon-apigateway-integration:
                 credentials:
-                  Fn::GetAtt:
-                  - DbWriteRole
-                  - Arn
+                  'Fn::GetAtt':
+                    - DbWriteRole
+                    - Arn
                 httpMethod: POST
                 passthroughBehavior: when_no_match
                 requestTemplates:
                   application/json:
-                    Fn::Sub: "{\n  \"TableName\": \"${FacesDynamoTable}\",\n  \"Item\"\
-                      : {\n    \"CollectionId\": {\n      \"S\": \"${CollectionId}\"\
-                      \n    },\n    \"ExternalImageId\": {\n      \"S\": $input.json('$.externalImageId')\n\
-                      \    },\n    \"JobTitle\": {\n      \"S\": $input.json('$.jobTitle')\n\
-                      \    },\n    \"MemberName\": {\n      \"S\": $input.json('$.memberName')\n\
-                      \    }\n  }\n}\n"
+                    'Fn::Sub': |
+                      {
+                        "TableName": "${FacesDynamoTable}",
+                        "Item": {
+                          "CollectionId": {
+                            "S": "${CollectionId}"
+                          },
+                          "ExternalImageId": {
+                            "S": $input.json('$.externalImageId')
+                          },
+                          "JobTitle": {
+                            "S": $input.json('$.jobTitle')
+                          },
+                          "MemberName": {
+                            "S": $input.json('$.memberName')
+                          }
+                        }
+                      }
                 responses:
                   default:
                     responseParameters:
                       method.response.header.Access-Control-Allow-Headers: '''Content-Type'''
                       method.response.header.Access-Control-Allow-Origin: '''*'''
                     responseTemplates:
-                      application/json: "{\n  \"ok\": true\n}\n"
+                      application/json: |
+                        {
+                          "ok": true
+                        }
                     statusCode: '200'
                 type: aws
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+                  'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem'
         securityDefinitions:
           sigv4:
             in: header
             name: Authorization
             type: apiKey
             x-amazon-apigateway-authtype: awsSigv4
-        swagger: 2.0
+        swagger: 2
       EndpointConfiguration: REGIONAL
       StageName: PROD
-    Type: AWS::Serverless::Api
+    Type: 'AWS::Serverless::Api'
   SentimentDynamoTable:
     Properties:
       AttributeDefinitions:
-      - AttributeName: CollectionId
-        AttributeType: S
-      - AttributeName: TimeDetected
-        AttributeType: N
+        - AttributeName: CollectionId
+          AttributeType: S
+        - AttributeName: TimeDetected
+          AttributeType: 'N'
       BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
-      - IndexName: gsiSentiment
-        KeySchema:
+        - IndexName: gsiSentiment
+          KeySchema:
+            - AttributeName: CollectionId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
         - AttributeName: CollectionId
           KeyType: HASH
-        Projection:
-          ProjectionType: ALL
-      KeySchema:
-      - AttributeName: CollectionId
-        KeyType: HASH
-      - AttributeName: TimeDetected
-        KeyType: RANGE
+        - AttributeName: TimeDetected
+          KeyType: RANGE
       TableName:
-        Fn::Sub: RekogSentiment${CollectionId}
-    Type: AWS::DynamoDB::Table
+        'Fn::Sub': 'RekogSentiment${CollectionId}'
+    Type: 'AWS::DynamoDB::Table'
   SetupRekognitionAndWebUI:
     Properties:
       Region:
-        Ref: AWS::Region
+        Ref: 'AWS::Region'
       ServiceToken:
-        Fn::GetAtt:
-        - LambdaSetup
-        - Arn
-    Type: Custom::Setup
+        'Fn::GetAtt':
+          - LambdaSetup
+          - Arn
+    Type: 'Custom::Setup'
   WebUIBucket:
     Properties:
       CorsConfiguration:
         CorsRules:
-        - AllowedHeaders:
-          - '*'
-          AllowedMethods:
-          - GET
-          AllowedOrigins:
-          - '*'
-          Id:
-            Fn::Sub: RekogCorsRule${CollectionId}
-          MaxAge: '3600'
-    Type: AWS::S3::Bucket
-Transform: AWS::Serverless-2016-10-31
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - '*'
+            Id:
+              'Fn::Sub': 'RekogCorsRule${CollectionId}'
+            MaxAge: '3600'
+    Type: 'AWS::S3::Bucket'
+Transform: 'AWS::Serverless-2016-10-31'

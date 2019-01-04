@@ -1,10 +1,40 @@
-const request = require("request-promise-native");
+const request = options => {
+  const https = require("https");
+  const url = require("url");
+
+  const requestOptions = Object.assign({}, url.parse(options.url), {
+    method: options.method,
+    headers: {
+      "Content-Type": "",
+      "Content-Length": Buffer.byteLength(options.body)
+    }
+  });
+
+  console.log(requestOptions);
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(requestOptions, res => {
+      const chunks = [];
+      if (res.statusCode !== 200) return reject(res);
+      res.setEncoding("utf8");
+      res.on("data", chunk => chunks.push(chunk));
+      res.on("error", reject);
+      res.on("end", () => resolve(Buffer.concat(chunks)));
+    });
+
+    req.write(options.body);
+    req.end();
+  });
+};
 
 module.exports = (event, context, callback) => {
   let timeout;
   const terminate = err => {
     clearTimeout(timeout);
-    if (err) console.log(err);
+    if (err) {
+      console.log("There was an error");
+      console.log(err);
+    }
     return callback(err);
   };
 
@@ -28,7 +58,10 @@ module.exports = (event, context, callback) => {
     console.log(`Making HTTP request to ${event.ResponseURL}: ${requestBody}`);
 
     return request(options)
-      .then(() => terminate())
+      .then(res => {
+        console.log(res);
+        return terminate();
+      })
       .catch(err => terminate(err));
   };
 
