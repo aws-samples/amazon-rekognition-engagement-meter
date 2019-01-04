@@ -9,8 +9,9 @@ This repo could be a useful playground to learn about Amazon Rekognition and oth
 
 The demo is available as [AWS CloudFormation](https://aws.amazon.com/cloudformation) template.
 [Download the template](https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml) or Deploy using the AWS Console:
+
 |Region|Launch Template|
-|-|-|
+|------|---------------|
 |**US East (N. Virginia)** (us-east-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
 |**US East (Ohio)** (us-east-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
 |**US West (Oregon)** (us-west-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
