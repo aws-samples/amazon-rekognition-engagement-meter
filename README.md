@@ -1,7 +1,7 @@
 ## Amazon Rekognition Engagement Meter
 
 
-The Engagement Meter is a web app that calculates and shows engagement levels of an audience participating in a meeting by connecting to a webcam. It also includes the capability of recognizing the attendants by associating their faces with previously created user profiles.
+The Engagement Meter is a web application that calculates and displays engagement levels of an audience observed by a webcam. It also includes the capability to recognize attendants by associating their faces to individual user profiles.
 
 
 ### Usage
