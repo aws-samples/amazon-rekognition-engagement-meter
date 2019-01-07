@@ -1,44 +1,22 @@
 ## Amazon Rekognition Engagement Meter
 
-
 The Engagement Meter is a web application that calculates and displays engagement levels of an audience observed by a webcam. It also includes the capability to recognize attendants by associating their faces to individual user profiles.
 
+### Index
 
-### Usage
-
-The demo is available as an [AWS CloudFormation](https://aws.amazon.com/cloudformation) template.
-[Download the template](https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml) or Deploy using the AWS Console:
-
-|Region|Launch Template|
-|------|---------------|
-|**US East (N. Virginia)** (us-east-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**US East (Ohio)** (us-east-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**US West (Oregon)** (us-west-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**Asia Pacific (Mumbai)** (ap-south-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-south-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**Asia Pacific (Seoul)** (ap-northeast-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**Asia Pacific (Sydney)** (ap-southeast-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**Asia Pacific (Tokyo)** (ap-northeast-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-|**EU (Ireland)** (eu-west-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
-
-Once you have chosen a region and are inside the AWS CloudFormation Console, you should be on a screen titled "*Quick Create Stack*".
-
-In the Stack name section, the Stack name is pre-populated with the name "*EngagementMeter*". You can customize that to a name of your choice less than 15 characters in length or leave as is.
-
-In the Parameters section, you must provide a *CollectionId*. You can customize that to a value of your choice or leave as is.
-
-Leave the rest of the options as is and check the "*I acknowledge that AWS CloudFormation might create IAM resources*" box and the "*I acknowledge that AWS CloudFormation might create IAM resources with custom names*" box. This is to allow CloudFormation to create a Role to allow access to resources needed by the stack and name the resources in a dynamic way.
-
-Scroll to the bottom and click *Create Change Set* and then *Execute* to launch your stack.
-
-Your stack will take some time to launch. You can track its progress in the "Events" tab. When it is done creating, the status will change from "*CREATE_IN_PROGRESS*" to "*CREATE_COMPLETE*".
+* [Architecture](#architecture)
+* [Deploy the application](#deploy-the-application)
+  * [Prerequisites](#prerequisites)
+  * [Deployment Steps](#deployment-steps)
+  * [Usage](#usage)
+* [Remove the application](#remove-the-application)
+* [Contributing](#contributing)
 
 ### Architecture
 
 The Engagement Meter uses [Amazon Rekognition](https://aws.amazon.com/rekognition) for image and sentiment analysis, [Amazon DynamoDB](https://aws.amazon.com/dynamodb) for storage, [Amazon API Gateway](https://aws.amazon.com/api-gateway) and [Amazon Cognito](https://aws.amazon.com/cognito) for the API, and [Amazon S3](https://aws.amazon.com/s3), [AWS Amplify](https://aws.amazon.com/amplify), and [React](https://reactjs.org) for the front-end layer.
 
 <img src="docs/amazon-rekognition-1.png" alt="Architecture Diagram" />
-
-### User flow
 
 There are three main user flows:
 * the **"add user"** flow (*yellow*) is triggered when clicking the *"Add user"* button
@@ -59,6 +37,53 @@ Amplify makes a `GET /people` request to the API Gateway, which then queries the
 #### The "sentiment analysis" flow (*blue*)
 
 Amplify makes two parallel calls to the API Gateway (here represented in a sequential manner for simplicity). First, Amplify makes a `POST /faces/detect` request with a screenshot detected from the webcam to the API Gateway, which then calls the `DetectedFaces` action on Amazon Rekognition. If any face is detected, the service provides details about the matches, including physical characteristics and sentiments. In that case, a little recap is shown on the UI for each recognized person. Then Amplify makes a `POST /engagement` request with some of the recognized sentiments (Angry, Confused, Happy, Sad, Surprised) to the API Gateway, which writes that data to the `Sentiment` table in DynamoDB. In parallel, Amplify makes a `GET /engagement` request to the API Gateway, which then queries the `Sentiment` table in DynamoDB to retrieve an aggregate for all the sentiments recorded during the last hour, in order to calibrate and draw the meter. To learn more about DetectFaces [see the Rekognition documentation](https://docs.aws.amazon.com/rekognition/latest/dg/API_DetectFaces.html).
+
+
+### Deploy the application
+
+#### Prerequisites
+
+From a technical standpoint, you'll need:
+* A Windows, Mac, or Linux machine with a [modern browser](https://caniuse.com/#feat=stream) installed and a webcamera.
+* An AWS account. If you dont already have an AWS account, create one at <https://aws.amazon.com> by following the on-screen instructions.
+* The ability to launch AWS CloudFormation templates that create IAM roles.
+
+#### Deployment Steps
+
+> **Note**  
+You are responsible for the cost of the AWS services used while running this Quick Start reference deployment. There is no additional cost for using this Quick Start. For full details, see the pricing pages for each AWS service you will be using in this Quick Start. Prices are subject to change.
+
+1. The demo is available as an [AWS CloudFormation](https://aws.amazon.com/cloudformation) template.
+[Download the template](https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml) or Deploy using the AWS Console:
+
+|Region|Launch Template|
+|------|---------------|
+|**US East (N. Virginia)** (us-east-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**US East (Ohio)** (us-east-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**US West (Oregon)** (us-west-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**Asia Pacific (Mumbai)** (ap-south-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-south-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**Asia Pacific (Seoul)** (ap-northeast-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**Asia Pacific (Sydney)** (ap-southeast-2) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**Asia Pacific (Tokyo)** (ap-northeast-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+|**EU (Ireland)** (eu-west-1) | [![Launch the EngagementMeter Stack with CloudFormation](docs/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=EngagementMeter&templateURL=https://s3-eu-west-1.amazonaws.com/rekognition-engagement-meter/template.yaml)|
+
+2. Once you have chosen a region and are inside the AWS CloudFormation Console, you should be on a screen titled "*Quick Create Stack*".
+3. In the Stack name section, the Stack name is pre-populated with the name "*EngagementMeter*". You can customize that to a name of your choice less than 15 characters in length or leave as is.
+4. In the Parameters section, you must provide a *CollectionId*. You can customize that to a value of your choice or leave as is.
+5. Leave the rest of the options as is and check the "*I acknowledge that AWS CloudFormation might create IAM resources*" box and the "*I acknowledge that AWS CloudFormation might create IAM resources with custom names*" box. This is to allow CloudFormation to create a Role to allow access to resources needed by the stack and name the resources in a dynamic way.
+6. Scroll to the bottom and click *Create Change Set* and then *Execute* to launch your stack.
+7. Your stack will take some time to launch. You can track its progress in the "Events" tab. When it is done creating, the status will change from "*CREATE_IN_PROGRESS*" to "*CREATE_COMPLETE*".
+8. Note the *url* displayed in the *Outputs* tab for the stack. You'll use that to access the application.
+
+#### Usage
+
+1. When accessing the application, the browser will ask you the permission for using your camera. You will need to click "*Allow*" for the application to work.
+2. Click "*Add a new user*" if you wish to add new profiles.
+3. Click "*Start Rekognition*" to start the engine. The app will start displaying information about the recognized faces and will calibrate the meter.
+
+### Remove the application
+
+To remove the application open the AWS ClodFormation Console, click the Engagement Meter project, right-click and select "*Delete Stack*". Your stack will take some time to be deleted. You can track its progress in the "Events" tab. When it is done, the status will change from DELETE_IN_PROGRESS" to "DELETE_COMPLETE". It will then disappear from the list.
 
 ## Contributing
 
