@@ -1,9 +1,9 @@
 module.exports = {
-  entry: ["./src/functions/setup/index.js"],
+  entry: ["./index.js"],
   target: "node",
   mode: "production",
   output: {
-    path: `${process.cwd()}/scripts/temp/`,
+    path: `${process.cwd()}/dist/`,
     filename: "setup.js",
     libraryTarget: "commonjs2"
   },
