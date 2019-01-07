@@ -20,6 +20,10 @@ Parameters:
     Type: String
     Default: RekogDemo
     AllowedPattern : ^[a-zA-Z0-9_]*$
+Outputs:
+  url:
+    Value: !Sub https://${WebUIBucket}.s3.amazonaws.com/index.html
+    Description: Engagement Meter URL
 Resources:
   SetupRekognitionAndWebUI:
     Type: Custom::Setup
@@ -587,7 +591,3 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: !GetAtt CustomResourceRole.Arn
-Outputs:
-  url:
-    Value: !Sub https://${WebUIBucket}.s3-${AWS::Region}.amazonaws.com/index.html
-    Description: Engagement Meter URL

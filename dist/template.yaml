@@ -23,7 +23,7 @@ Outputs:
   url:
     Description: Engagement Meter URL
     Value:
-      'Fn::Sub': 'https://${WebUIBucket}.s3-${AWS::Region}.amazonaws.com/index.html'
+      'Fn::Sub': 'https://${WebUIBucket}.s3.amazonaws.com/index.html'
 Parameters:
   CollectionId:
     AllowedPattern: '^[a-zA-Z0-9_]*$'
