@@ -187,18 +187,19 @@ Resources:
         resources"),y=[p(),u()]),Promise.all(y).then(()=>(console.log("All
         actions successfully performed"),f("SUCCESS",{Message:`Resources
         successfully
-        ${g.toLowerCase()}d`}))).catch(e=>console.log(e)||f("FAILED"))})},function(e,t){e.exports=require("aws-sdk")},function(e,t){const{COLLECTION_ID:o}=process.env,n={CollectionId:o};e.exports=(e=>({createCollection:()=>e.createCollection(n).promise(),deleteCollection:()=>e.deleteCollection(n).promise()}))},function(e,t,o){e.exports=((e,t,n)=>{let
-        r;const s=e=>(clearTimeout(r),e&&(console.log("There was an
-        error"),console.log(e)),n(e)),c=(n,r)=>{const
-        c=JSON.stringify({Status:n,Reason:`Details:
-        ${t.logStreamName}`,PhysicalResourceId:t.logStreamName,StackId:e.StackId,RequestId:e.RequestId,LogicalResourceId:e.LogicalResourceId,Data:r}),i={url:e.ResponseURL,body:c,method:"PUT"};return
-        console.log(`Making HTTP request to ${e.ResponseURL}: ${c}`),(e=>{const
-        t=o(5),n=o(6),r=Object.assign({},n.parse(e.url),{method:e.method,headers:{"Content-Type":"","Content-Length":Buffer.byteLength(e.body)}});return
-        console.log(r),new Promise((o,n)=>{const s=t.request(r,e=>{const
+        ${g.toLowerCase()}d`}))).catch(e=>console.log(e)||f("FAILED"))})},function(e,t){e.exports=require("aws-sdk")},function(e,t){const{COLLECTION_ID:o}=process.env,n={CollectionId:o};e.exports=(e=>({createCollection:()=>e.createCollection(n).promise(),deleteCollection:()=>e.deleteCollection(n).promise()}))},function(e,t,o){const
+        n=o(5),r=o(6);e.exports=((e,t,o)=>{let s;const
+        c=e=>(clearTimeout(s),e&&(console.log("There was an
+        error"),console.log(e)),o(e)),i=(o,s)=>{const
+        i=JSON.stringify({Status:o,Reason:`Details:
+        ${t.logStreamName}`,PhysicalResourceId:t.logStreamName,StackId:e.StackId,RequestId:e.RequestId,LogicalResourceId:e.LogicalResourceId,Data:s}),l={url:e.ResponseURL,body:i,method:"PUT"};return
+        console.log(`Making HTTP request to ${e.ResponseURL}: ${i}`),(e=>{const
+        t=Object.assign({},r.parse(e.url),{method:e.method,headers:{"Content-Type":"","Content-Length":Buffer.byteLength(e.body)}});return
+        new Promise((o,r)=>{const s=n.request(t,e=>{const
         t=[];if(200!==e.statusCode)return
-        n(e);e.setEncoding("utf8"),e.on("data",e=>t.push(e)),e.on("error",n),e.on("end",()=>o(Buffer.concat(t)))});s.write(e.body),s.end()})})(i).then(e=>(console.log(e),s())).catch(e=>s(e))};return
-        r=setTimeout(()=>c("FAILED").then(()=>n(new Error("Function timed
-        out"))),t.getRemainingTimeInMillis()-1e3),{sendResponse:c}})},function(e,t){e.exports=require("https")},function(e,t){e.exports=require("url")},function(e,t){const{API_GATEWAY:o,COGNITO_IDENTITY_POOL:n,FROM_BUCKET:r,REGION:s,TO_BUCKET:c}=process.env;e.exports=(e=>{const
+        r(e);e.setEncoding("utf8"),e.on("data",e=>t.push(e)),e.on("error",r),e.on("end",()=>o(Buffer.concat(t)))});s.write(e.body),s.end()})})(l).then(e=>(console.log(e),c())).catch(e=>c(e))};return
+        s=setTimeout(()=>i("FAILED").then(()=>o(new Error("Function timed
+        out"))),t.getRemainingTimeInMillis()-1e3),{sendResponse:i}})},function(e,t){e.exports=require("https")},function(e,t){e.exports=require("url")},function(e,t){const{API_GATEWAY:o,COGNITO_IDENTITY_POOL:n,FROM_BUCKET:r,REGION:s,TO_BUCKET:c}=process.env;e.exports=(e=>{const
         t=t=>e.listObjects(t).promise();return{copyFiles:()=>t({Bucket:r,Prefix:"static/"}).then(t=>Promise.all(t.Contents.map(t=>(t=>e.copyObject(t).promise())({ACL:"public-read",Bucket:c,CopySource:`${r}/${t.Key}`,Key:t.Key.slice("static/".length)})))),removeFiles:()=>t({Bucket:c}).then(t=>Promise.all(t.Contents.map(e=>e.Key).map(t=>(t=>e.deleteObject(t).promise())({Bucket:c,Key:t})))),writeSettings:()=>e.putObject({ACL:"public-read",Bucket:c,Key:"settings.js",Body:`window.rekognitionSettings
         =
         ${JSON.stringify({apiGateway:o,cognitoIdentityPool:n,region:s})};`}).promise()}})}]);

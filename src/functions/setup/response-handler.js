@@ -1,7 +1,7 @@
-const request = options => {
-  const https = require("https");
-  const url = require("url");
+const https = require("https");
+const url = require("url");
 
+const request = options => {
   const requestOptions = Object.assign({}, url.parse(options.url), {
     method: options.method,
     headers: {
@@ -9,8 +9,6 @@ const request = options => {
       "Content-Length": Buffer.byteLength(options.body)
     }
   });
-
-  console.log(requestOptions);
 
   return new Promise((resolve, reject) => {
     const req = https.request(requestOptions, res => {
