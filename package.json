@@ -1,8 +1,7 @@
 {
   "name": "amazon-rekognition-engagement-meter",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "build": "npm run webui-build && npm run lambda-build && npm run cfn-build",
     "cfn-build": "npm run cfn-package && npm run lambda-inline",
@@ -23,11 +22,8 @@
     "type": "git",
     "url": "git+https://github.com/aws-samples/amazon-rekognition-engagement-meter.git"
   },
-  "author": "",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/aws-samples/amazon-rekognition-engagement-meter/issues"
   },
-  "homepage": "https://github.com/aws-samples/amazon-rekognition-engagement-meter#readme",
-  "private": true
+  "homepage": "https://github.com/aws-samples/amazon-rekognition-engagement-meter#readme"
 }
