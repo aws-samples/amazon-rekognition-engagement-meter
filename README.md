@@ -3,7 +3,6 @@
 
 The Engagement Meter is a web app that calculates and shows engagement levels of an audience participating in a meeting by connecting to a webcam. It also includes the capability of recognizing the attendants by associating their faces with previously created user profiles.
 
-This repo could be a useful playground to learn about Amazon Rekognition and other AWS services.
 
 ### Usage
 
@@ -45,6 +44,8 @@ The engagement meter uses [Amazon Rekognition](https://aws.amazon.com/rekognitio
 There are three main user flows:
 * the **"add user"** flow (*yellow*) is triggered when clicking the *"Add user"* button
 * the **"added users recognition"** flow (*green*) and the **"sentiment analysis"** flow (*blue*) are both triggered when clicking the *"Start Rekognition"* button and repeat until the *"Stop Rekognition"* button is clicked.
+
+The diagram below represents the API calls performed by Amplify, which takes care of authenticating all the calls to the API Gateway using Cognito.
 
 <img src="docs/amazon-rekognition-2.png" alt="User flow" />
 
