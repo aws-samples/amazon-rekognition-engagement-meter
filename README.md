@@ -34,7 +34,7 @@ Your stack will take some time to launch. You can track its progress in the "Eve
 
 ### Architecture
 
-The engagement meter uses [Amazon Rekognition](https://aws.amazon.com/rekognition) for image and sentiment analysis, [Amazon DynamoDB](https://aws.amazon.com/dynamodb) for storage, [Amazon API Gateway](https://aws.amazon.com/api-gateway) and [Amazon Cognito](https://aws.amazon.com/cognito) for the API, and [Amazon S3](https://aws.amazon.com/s3), [AWS Amplify](https://aws.amazon.com/amplify), and [React](https://reactjs.org) for the front-end layer.
+The Engagement Meter uses [Amazon Rekognition](https://aws.amazon.com/rekognition) for image and sentiment analysis, [Amazon DynamoDB](https://aws.amazon.com/dynamodb) for storage, [Amazon API Gateway](https://aws.amazon.com/api-gateway) and [Amazon Cognito](https://aws.amazon.com/cognito) for the API, and [Amazon S3](https://aws.amazon.com/s3), [AWS Amplify](https://aws.amazon.com/amplify), and [React](https://reactjs.org) for the front-end layer.
 
 <img src="docs/amazon-rekognition-1.png" alt="Architecture Diagram" />
 
