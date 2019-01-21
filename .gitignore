@@ -1,5 +1,8 @@
 .DS_Store
+.python-version
+
 node_modules
 npm-debug.log*
 src/web-ui/build
 src/web-ui/public/settings.js
+taskcat_outputs

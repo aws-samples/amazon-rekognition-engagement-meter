@@ -438,14 +438,13 @@ Resources:
                   integration.request.header.Content-Type: '''application/x-amz-json-1.1'''
                   integration.request.header.X-Amz-Target: '''RekognitionService.DetectFaces'''
                 requestTemplates:
-                  application/json:
-                    'Fn::Sub': |
-                      {
-                        "Attributes": ["ALL"],
-                        "Image": {
-                          "Bytes": $input.json('$.image')
-                        }
+                  application/json: |
+                    {
+                      "Attributes": ["ALL"],
+                      "Image": {
+                        "Bytes": $input.json('$.image')
                       }
+                    }
                 responses:
                   default:
                     responseParameters:
@@ -675,6 +674,6 @@ Resources:
               - '*'
             Id:
               'Fn::Sub': 'RekogCorsRule${CollectionId}'
-            MaxAge: '3600'
+            MaxAge: 3600
     Type: 'AWS::S3::Bucket'
 Transform: 'AWS::Serverless-2016-10-31'
