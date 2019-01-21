@@ -6,8 +6,22 @@ documentation, we greatly value feedback and contributions from our community.
 Please read through this document before submitting any issues or pull requests to ensure we have all the necessary 
 information to effectively respond to your bug report or contribution.
 
+## Index
 
-## Reporting Bugs/Feature Requests
+* [Introduction](#introduction)
+  * [Reporting Bugs/Feature Requests](#reporting-bugsfeature-requests)
+  * [Contributing via Pull Requests](#contributing-via-pull-requests)
+  * [Finding contributions to work on](#finding-contributions-to-work-on)
+  * [Code of Conduct](#code-of-conduct)
+  * [Security issue notifications](#security-issue-notifications)
+  * [Licensing](#licensing)
+* [Prerequirements](#prerequirements)
+* [Working with CloudFormation](#working-with-cloudformation)
+* [Working with the Web UI](#working-with-the-web-ui)
+
+## Introduction
+
+### Reporting Bugs/Feature Requests
 
 We welcome you to use the GitHub issue tracker to report bugs or suggest features.
 
@@ -20,7 +34,7 @@ reported the issue. Please try to include as much information as you can. Detail
 * Anything unusual about your environment or deployment
 
 
-## Contributing via Pull Requests
+### Contributing via Pull Requests
 Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
 
 1. You are working against the latest source on the *master* branch.
@@ -40,22 +54,43 @@ GitHub provides additional document on [forking a repository](https://help.githu
 [creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
 
-## Finding contributions to work on
+### Finding contributions to work on
 Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any ['help wanted'](https://github.com/aws-samples/amazon-rekognition-engagement-meter/labels/help%20wanted) issues is a great place to start. 
 
 
-## Code of Conduct
+### Code of Conduct
 This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct). 
 For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq) or contact 
 opensource-codeofconduct@amazon.com with any additional questions or comments.
 
 
-## Security issue notifications
+### Security issue notifications
 If you discover a potential security issue in this project we ask that you notify AWS/Amazon Security via our [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public github issue.
 
 
-## Licensing
+### Licensing
 
 See the [LICENSE](https://github.com/aws-samples/amazon-rekognition-engagement-meter/blob/master/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
+
+## Prerequirements
+
+The following applications are required to contribute:
+
+* Node.js v>=8
+* AWS CLI
+
+In order to start, run `npm install`.
+
+## Working with CloudFormation
+
+The CloudFormation sourcecode is inside the `src/cfn` folder. The template uses a custom resource for making some initial API calls to Amazon Rekognition and to populate the S3 bucket with the Web UI's static resources. The lambda sourcecode is inside the `src/functions/setup` folder.
+
+## Working with the Web UI
+
+In order to work locally with the web UI you need to deploy the CloudFormation template first. After completion, a `url` output parameter will be provided in a form like `https://<s3-bucket-url>/index.html`. 
+Next, download the file `https://<s3-bucket-url>/settings.js` to the `src/web-ui/public/` folder. 
+In this way, we can develop locally using the API Gateway and Cognito Pool Id that we just deployed to AWS.
+Next, run `npm start`. The browser will automatically open the UI with hot reloading enabled.
+To make changes, edit the files in the `src/web-ui` folder.
