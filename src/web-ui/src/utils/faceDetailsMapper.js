@@ -2,6 +2,7 @@ export default person => {
   const result = {
     ageLow: person.AgeRange.Low,
     ageHigh: person.AgeRange.High,
+    boundingBox: person.BoundingBox,
     emotions: {}
   };
   
