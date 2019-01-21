@@ -78,19 +78,22 @@ We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikiped
 
 The following applications are required to contribute:
 
-* Node.js v>=8
+* Node.js >=v8
 * AWS CLI
 
 In order to start, run `npm install`.
 
 ## Working with CloudFormation
 
-The CloudFormation sourcecode is inside the `src/cfn` folder. The template uses a custom resource for making some initial API calls to Amazon Rekognition and to populate the S3 bucket with the Web UI's static resources. The lambda sourcecode is inside the `src/functions/setup` folder.
+The CloudFormation sourcecode is located inside the `src/cfn` folder. The template uses a custom resource for making some initial API calls to Amazon Rekognition and to populate the S3 bucket with the Web UI's static resources. The lambda sourcecode is located inside the `src/functions/setup` folder.
 
 ## Working with the Web UI
 
-In order to work locally with the web UI you need to deploy the CloudFormation template first. After completion, a `url` output parameter will be provided in a form like `https://<s3-bucket-url>/index.html`. 
+In order to work locally with the web UI, deploy the CloudFormation template first.
+
+After completion, a `url` output parameter will be provided in a format like `https://<s3-bucket-url>/index.html`. 
 Next, download the file `https://<s3-bucket-url>/settings.js` to the `src/web-ui/public/` folder. 
-In this way, we can develop locally using the API Gateway and Cognito Pool Id that we just deployed to AWS.
+In this way, it will be possible to develop locally using the API Gateway and Cognito Pool Id that CloudFormation just created in AWS.
+
 Next, run `npm start`. The browser will automatically open the UI with hot reloading enabled.
 To make changes, edit the files in the `src/web-ui` folder.
