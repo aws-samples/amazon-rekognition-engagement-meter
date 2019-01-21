@@ -20,6 +20,23 @@ export default props => (
   <div>
     {props.detectedFaces.map((face, index) => (
       <div key={index}>
+        <div
+          style={{
+            border: "1px solid #f0ad4e",
+            fontWeight: "bold",
+            position: "fixed",
+            height: props.webcamCoordinates.height * face.boundingBox.Height,
+            left:
+              props.webcamCoordinates.left +
+              face.boundingBox.Left * props.webcamCoordinates.width,
+            top:
+              props.webcamCoordinates.top +
+              face.boundingBox.Top * props.webcamCoordinates.height,
+            width: props.webcamCoordinates.width * face.boundingBox.Width
+          }}
+        >
+          Person #{index + 1}
+        </div>
         <Table responsive>
           <thead>
             <tr>
@@ -45,7 +62,9 @@ export default props => (
       </div>
     ))}
     {props.detectedPeople.map(person => (
-      <p key={person.externalImageId}>Welcome <b>{person.memberName}</b> ({person.jobTitle})</p>
+      <p key={person.externalImageId}>
+        Welcome <b>{person.memberName}</b> ({person.jobTitle})
+      </p>
     ))}
   </div>
 );
