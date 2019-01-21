@@ -1,16 +1,21 @@
 {
-  "name": "index.js",
+  "name": "lambda-custom-resource",
   "version": "1.0.0",
+  "private": true,
   "description": "Setup the static S3 files",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack-cli --config ./build/webpack.js && uglifyjs ./dist/setup.js -o ./dist/setup.min.js -c -m",
+    "inline": "node ./build/inline.js"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.369.0",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.5"
+    "aws-sdk": "2.369.0"
+  },
+  "devDependencies": {
+    "js-yaml": "3.12.0",
+    "uglify-es": "3.3.9",
+    "uglifyjs": "2.4.11",
+    "webpack": "4.28.3",
+    "webpack-cli": "3.2.1"
   }
 }
