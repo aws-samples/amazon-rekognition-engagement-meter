@@ -81,7 +81,7 @@ The following applications are required to contribute:
 * Node.js >=v8
 * AWS CLI
 
-In order to start, run `npm install`.
+To start, run `npm install`.
 
 ## Working with CloudFormation
 
