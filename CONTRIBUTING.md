@@ -74,7 +74,7 @@ See the [LICENSE](https://github.com/aws-samples/amazon-rekognition-engagement-m
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
 
-## Prerequirements
+## Prerequisites
 
 The following applications are required to contribute:
 
