@@ -91,7 +91,7 @@ The CloudFormation source code is located inside the `src/cfn` directory. The te
 
 To develop a local version of the web UI, deploy the CloudFormation template first.
 
-After completion, a `url` output parameter will be provided in a format like `https://<s3-bucket-url>/index.html`. 
+Once the CloudFormation stack is deployed, a `url` output will be available from CloudFormation in the format of `https://<s3-bucket-url>/index.html`. 
 Next, download the file `https://<s3-bucket-url>/settings.js` to the `src/web-ui/public/` folder. 
 In this way, it will be possible to develop locally using the API Gateway and Cognito Pool Id that CloudFormation just created in AWS.
 
