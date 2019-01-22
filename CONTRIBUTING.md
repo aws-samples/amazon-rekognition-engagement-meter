@@ -89,7 +89,7 @@ The CloudFormation source code is located inside the `src/cfn` directory. The te
 
 ## Working with the Web UI
 
-In order to work locally with the web UI, deploy the CloudFormation template first.
+To develop a local version of the web UI, deploy the CloudFormation template first.
 
 After completion, a `url` output parameter will be provided in a format like `https://<s3-bucket-url>/index.html`. 
 Next, download the file `https://<s3-bucket-url>/settings.js` to the `src/web-ui/public/` folder. 
