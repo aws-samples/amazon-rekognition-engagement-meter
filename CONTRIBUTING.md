@@ -15,7 +15,7 @@ information to effectively respond to your bug report or contribution.
   * [Code of Conduct](#code-of-conduct)
   * [Security issue notifications](#security-issue-notifications)
   * [Licensing](#licensing)
-* [Prerequirements](#prerequirements)
+* [Prerequisites](#prerequisites)
 * [Working with CloudFormation](#working-with-cloudformation)
 * [Working with the Web UI](#working-with-the-web-ui)
 
@@ -74,7 +74,7 @@ See the [LICENSE](https://github.com/aws-samples/amazon-rekognition-engagement-m
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
 
-## Prerequirements
+## Prerequisites
 
 The following applications are required to contribute:
 
