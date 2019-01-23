@@ -5,7 +5,8 @@
   "scripts": {
     "build": "npm run webui-build && npm run lambda-build && npm run cfn-build",
     "cfn-build": "npm run cfn-package && npm run lambda-inline",
-    "cfn-package": "aws cloudformation package --template-file ./src/cfn/template.yaml --s3-bucket rekognition-engagement-meter --output-template-file ./dist/template.yaml",
+    "cfn-ensure-dist": "if [ ! -d './dist' ]; then mkdir dist; fi",
+    "cfn-package": "npm run cfn-ensure-dist && cfn-flip -c -n -l src/cfn/template.yaml dist/template.yaml",
     "cfn-deploy": "npm run cfn-deploy-template && npm run cfn-deploy-stack",
     "cfn-deploy-stack": "aws cloudformation deploy --template-file ./dist/template.yaml --region eu-west-1 --capabilities CAPABILITY_IAM --parameter-overrides CollectionId=RekoDemo --stack-name rekodemo",
     "cfn-deploy-template": "aws s3 cp ./dist/template.yaml s3://rekognition-engagement-meter/ --acl public-read",
