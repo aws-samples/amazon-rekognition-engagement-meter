@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { findDOMNode } from "react-dom";
 import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
 import { Col, Grid, Row } from "react-bootstrap";
@@ -31,7 +32,8 @@ class App extends Component {
       detectedPeople: [],
       happyometer: 50,
       people: [],
-      rekognizing: false
+      rekognizing: false,
+      webcamCoordinates: {}
     };
   }
 
@@ -41,6 +43,9 @@ class App extends Component {
 
   getSnapshot() {
     if (this.webcam) {
+      this.setState({
+        webcamCoordinates: findDOMNode(this.webcam).getBoundingClientRect()
+      });
       const image = this.webcam.getScreenshot();
       const b64Encoded = image.split(",")[1];
 
@@ -118,10 +123,10 @@ class App extends Component {
                       screenshotFormat="image/jpeg"
                       videoConstraints={{
                         width: 1280,
-                        height: 720,
+                        height: 640,
                         facingMode: "user"
                       }}
-                      width="100%"
+                      width={640}
                       height={320}
                     />
                   </Col>
@@ -154,6 +159,7 @@ class App extends Component {
               <EngagementSummary
                 detectedFaces={this.state.detectedFaces}
                 detectedPeople={this.state.detectedPeople}
+                webcamCoordinates={this.state.webcamCoordinates}
               />
             </Col>
           </Row>
