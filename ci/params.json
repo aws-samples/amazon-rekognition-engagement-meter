@@ -1,4 +1,4 @@
 [{
   "ParameterKey": "CollectionId",
-  "ParameterValue": "RekogDemo"
+  "ParameterValue": "$[taskcat_random-string]"
 }]
