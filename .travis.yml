@@ -6,9 +6,12 @@ node_js:
 before_script:
   - python --version
   - pip --version
+  - pyenv --version
+  - aws --version
   - npm run build
 
 script:
+  npm --version
   # - npm test
 
 after_success:
