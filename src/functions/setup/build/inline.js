@@ -2,7 +2,7 @@ const yaml = require("js-yaml");
 const fs = require("fs");
 const path = require("path");
 
-const templatePath = path.resolve("../../../dist/template.yaml");
+const templatePath = path.resolve("../../../templates/template.yaml");
 const doc = yaml.safeLoad(fs.readFileSync(templatePath, "utf-8"));
 
 const inlinedLambda = fs.readFileSync(

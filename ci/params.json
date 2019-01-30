@@ -1,0 +1,4 @@
+[{
+  "ParameterKey": "CollectionId",
+  "ParameterValue": "$[taskcat_random-string]"
+}]
