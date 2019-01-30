@@ -1,0 +1,20 @@
+language: node_js
+
+node_js: 
+  - "8"
+
+before_script:
+  - python --version
+  - pip --version
+  - npm run build
+
+script:
+  # - npm test
+
+after_success:
+  - if [ $TRAVIS_PULL_REQUEST == false ] && [ $TRAVIS_BRANCH == "master" ]; then
+      npm run taskcat
+    fi
+
+notifications:
+  email: false
