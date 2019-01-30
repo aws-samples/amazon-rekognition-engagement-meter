@@ -4,9 +4,8 @@ node_js:
   - "8"
 
 before_script:
-  - pyenv install --list
-  - pyenv install 3.7.1
-  - pyenv global 3.7.1
+  - pyenv install 3.7-dev
+  - pyenv global 3.7-dev
   - python --version
   - pip install -r requirements.txt --user
   - npm run build
