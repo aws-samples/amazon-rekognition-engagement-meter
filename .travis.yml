@@ -12,6 +12,7 @@ before_script:
 after_success:
   - if [ $TRAVIS_PULL_REQUEST == false ] && [ $TRAVIS_BRANCH == "master" ]; then
         npm run pre-deploy-test;
+        pip3 install -r requirements.txt --user;
         npm run deploy;
       fi
 
