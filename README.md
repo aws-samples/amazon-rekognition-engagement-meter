@@ -2,6 +2,9 @@
 
 The Engagement Meter is a web application that calculates and displays engagement levels of an audience observed by a webcam. It also includes the capability to recognize attendants by associating their faces to individual user profiles.
 
+[![Build Status](https://travis-ci.org/aws-samples/amazon-rekognition-engagement-meter.svg?branch=master)](https://travis-ci.org/aws-samples/amazon-rekognition-engagement-meter)
+
+
 ### Index
 
 * [Architecture](#architecture)
