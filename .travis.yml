@@ -11,7 +11,8 @@ before_script:
 
 after_success:
   - if [ $TRAVIS_PULL_REQUEST == false ] && [ $TRAVIS_BRANCH == "master" ]; then
-        npm run taskcat;
+        npm run pre-deploy-test;
+        npm run deploy;
       fi
 
 notifications:
