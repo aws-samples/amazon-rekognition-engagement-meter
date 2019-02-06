@@ -21,7 +21,7 @@ export default props => (
         </NavItem>
       </Nav>
       <Nav pullRight style={{ paddingTop: "8px" }}>
-        <RekognitionButton onClick={props.toggleRekognition} />
+        <RekognitionButton onClick={props.toggleRekognition} enabled={props.readyToStream} />
         <AddUserModal onSave={props.addUser} />
       </Nav>
     </Navbar.Collapse>

@@ -19,6 +19,7 @@ class RekognitionButton extends Component {
           });
           this.props.onClick(e);
         }}
+        disabled={!this.props.enabled}
       >
         {this.state.started ? "Stop" : "Start"} Rekognition
       </Button>

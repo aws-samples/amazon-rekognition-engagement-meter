@@ -4,6 +4,7 @@ import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
 import { Col, Grid, Row } from "react-bootstrap";
 
+import CameraHelp from "./components/CameraHelp";
 import EngagementSummary from "./components/EngagementsSummary";
 import Header from "./components/Header";
 import PolarChart from "./components/PolarChart";
@@ -32,6 +33,7 @@ class App extends Component {
       detectedPeople: [],
       happyometer: 50,
       people: [],
+      readyToStream: false,
       rekognizing: false,
       webcamCoordinates: {}
     };
@@ -42,52 +44,50 @@ class App extends Component {
   }
 
   getSnapshot() {
-    if (this.webcam) {
-      this.setState({
-        webcamCoordinates: findDOMNode(this.webcam).getBoundingClientRect()
+    this.setState({
+      webcamCoordinates: findDOMNode(this.webcam).getBoundingClientRect()
+    });
+    const image = this.webcam.getScreenshot();
+    const b64Encoded = image.split(",")[1];
+
+    gateway.getEngagement().then(response => {
+      const chartData = getChartData(response);
+
+      if (chartData.happyometer) {
+        this.setState({ happyometer: chartData.happyometer });
+      }
+
+      if (chartData.aggregate) {
+        this.setState({ aggregate: chartData.aggregate });
+      }
+    });
+
+    gateway.detectFaces(b64Encoded).then(response => {
+      const detectedFaces = response.FaceDetails.map(person => {
+        const result = faceDetailsMapper(person);
+        gateway.postEngagement(result).then(() => {});
+        return result;
       });
-      const image = this.webcam.getScreenshot();
-      const b64Encoded = image.split(",")[1];
 
-      gateway.getEngagement().then(response => {
-        const chartData = getChartData(response);
-
-        if (chartData.happyometer) {
-          this.setState({ happyometer: chartData.happyometer });
-        }
-
-        if (chartData.aggregate) {
-          this.setState({ aggregate: chartData.aggregate });
+      this.setState({ detectedFaces }, () => {
+        if (this.state.rekognizing) {
+          setTimeout(this.getSnapshot, 300);
         }
       });
+    });
 
-      gateway.detectFaces(b64Encoded).then(response => {
-        const detectedFaces = response.FaceDetails.map(person => {
-          const result = faceDetailsMapper(person);
-          gateway.postEngagement(result).then(() => {});
-          return result;
+    gateway.searchFaces(b64Encoded).then(response => {
+      const detectedPeople = [];
+      if (response.FaceMatches) {
+        response.FaceMatches.forEach(match => {
+          const externalImageId = match.Face.ExternalImageId;
+          detectedPeople.push(
+            this.state.people.find(x => x.externalImageId === externalImageId)
+          );
         });
-
-        this.setState({ detectedFaces }, () => {
-          if (this.state.rekognizing) {
-            setTimeout(this.getSnapshot, 300);
-          }
-        });
-      });
-
-      gateway.searchFaces(b64Encoded).then(response => {
-        const detectedPeople = [];
-        if (response.FaceMatches) {
-          response.FaceMatches.forEach(match => {
-            const externalImageId = match.Face.ExternalImageId;
-            detectedPeople.push(
-              this.state.people.find(x => x.externalImageId === externalImageId)
-            );
-          });
-        }
-        this.setState({ detectedPeople });
-      });
-    }
+      }
+      this.setState({ detectedPeople });
+    });
   }
 
   toggleRekognition() {
@@ -105,14 +105,28 @@ class App extends Component {
     );
   }
 
+  componentDidMount() {
+    const checkIfReady = () => {
+      if (this.webcam && this.webcam.state && this.webcam.state.hasUserMedia) {
+        this.setState({
+          readyToStream: true
+        });
+      } else setTimeout(checkIfReady, 250);
+    };
+
+    checkIfReady();
+  }
+
   render() {
     return (
       <div className="App">
         <Header
           toggleRekognition={this.toggleRekognition}
           addUser={this.addUser}
+          readyToStream={this.state.readyToStream}
         />
         <Grid>
+          <CameraHelp show={!this.state.readyToStream} />
           <Row>
             <Col md={8}>
               <Grid>
