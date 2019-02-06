@@ -7,9 +7,10 @@ export default props => {
     return (
       <Row>
         <Col md={12}>
-          When prompted, you need to click <i>Allow</i> to use the application.
+          When prompted, you need to click <i>Allow</i> to use the application
+          with your webcamera.
           <br />
-          If nothing is prompted to you, try{" "}
+          If you don't see the dialog, try{" "}
           <a href={currentUrl}>opening the application</a> in a new incognito
           window, or review your webcam settings on your browser.
         </Col>
