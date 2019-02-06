@@ -128,10 +128,10 @@ class App extends Component {
         <Grid>
           <CameraHelp show={!this.state.readyToStream} />
           <Row>
-            <Col md={8}>
+            <Col md={8} sm={6}>
               <Grid>
                 <Row>
-                  <Col md={8}>
+                  <Col md={8} sm={6}>
                     <Webcam
                       ref={webcam => (this.webcam = webcam)}
                       screenshotFormat="image/jpeg"
@@ -140,13 +140,20 @@ class App extends Component {
                         height: 640,
                         facingMode: "user"
                       }}
-                      width={640}
-                      height={320}
+                      width="100%"
+                      height="100%"
+                    />
+                  </Col>
+                  <Col md={4} sm={6}>
+                    <EngagementSummary
+                      detectedFaces={this.state.detectedFaces}
+                      detectedPeople={this.state.detectedPeople}
+                      webcamCoordinates={this.state.webcamCoordinates}
                     />
                   </Col>
                 </Row>
                 <Row style={{ marginTop: "20px" }}>
-                  <Col md={4}>
+                  <Col md={4} sm={6}>
                     <h3>Trends for last hour</h3>
                     <PolarChart
                       data={Object.keys(this.state.aggregate).map(
@@ -157,7 +164,7 @@ class App extends Component {
                       )}
                     />
                   </Col>
-                  <Col md={4}>
+                  <Col md={4} sm={6}>
                     <h3 style={{ marginBottom: "40px" }}>Engagement Meter</h3>
                     <HalfCircleMeter
                       backgroundColor="#fff"
@@ -168,13 +175,6 @@ class App extends Component {
                   </Col>
                 </Row>
               </Grid>
-            </Col>
-            <Col md={4}>
-              <EngagementSummary
-                detectedFaces={this.state.detectedFaces}
-                detectedPeople={this.state.detectedPeople}
-                webcamCoordinates={this.state.webcamCoordinates}
-              />
             </Col>
           </Row>
         </Grid>
