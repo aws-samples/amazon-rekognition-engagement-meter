@@ -35,7 +35,7 @@ export default {
     return request(`/engagement`, "post", {
       timeDetected: new Date().getTime(),
       angry: normalize("ANGRY"),
-      confused: normalize("CONFUSED"),
+      calm: normalize("CALM"),
       happy: normalize("HAPPY"),
       sad: normalize("SAD"),
       surprised: normalize("SURPRISED")

@@ -24,7 +24,7 @@ class App extends Component {
     this.state = {
       aggregate: {
         angry: 0,
-        confused: 0,
+        calm: 0,
         happy: 0,
         sad: 0,
         surprised: 0

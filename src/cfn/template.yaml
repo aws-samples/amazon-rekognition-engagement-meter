@@ -249,7 +249,7 @@ Resources:
                           "results": [
                             #foreach($elem in $inputRoot.Items) {
                               "angry": "$elem.Angry.S",
-                              "confused": "$elem.Confused.S",
+                              "calm": "$elem.Calm.S",
                               "happy": "$elem.Happy.S",
                               "sad": "$elem.Sad.S",
                               "surprised": "$elem.Surprised.S"
@@ -264,7 +264,7 @@ Resources:
                       "IndexName": "gsiSentiment",
                       "KeyConditionExpression": "CollectionId = :cid",
                       "FilterExpression": "TimeDetected >= :td",
-                      "ProjectionExpression": "Angry,Confused,Happy,Sad,Surprised",
+                      "ProjectionExpression": "Angry,Calm,Happy,Sad,Surprised",
                       "ExpressionAttributeValues": {
                         ":cid": {
                           "S": "${CollectionId}"
@@ -322,8 +322,8 @@ Resources:
                         "Angry": {
                           "S": "$input.json('$.angry')"
                         },
-                        "Confused": {
-                          "S": "$input.json('$.confused')"
+                        "Calm": {
+                          "S": "$input.json('$.calm')"
                         },
                         "Happy": {
                           "S": "$input.json('$.happy')"
