@@ -6,7 +6,7 @@ export default data => {
 
   const totals = {
     angry: 0,
-    confused: 0,
+    calm: 0,
     happy: 0,
     sad: 0,
     surprised: 0,
@@ -15,13 +15,13 @@ export default data => {
 
   data.results.forEach(function(result) {
     totals.angry += parseInt(result.angry, 10);
-    totals.confused += parseInt(result.confused, 10);
+    totals.calm += parseInt(result.calm, 10);
     totals.happy += parseInt(result.happy, 10);
     totals.sad += parseInt(result.sad, 10);
     totals.surprised += parseInt(result.surprised, 10);
     totals.total =
       totals.angry +
-      totals.confused +
+      totals.calm +
       totals.happy +
       totals.sad +
       totals.surprised;
@@ -35,7 +35,7 @@ export default data => {
 
     output.aggregate = {
       angry: Math.floor((totals.angry / totals.total) * 100),
-      confused: Math.floor((totals.confused / totals.total) * 100),
+      calm: Math.floor((totals.calm / totals.total) * 100),
       happy: Math.floor((totals.happy / totals.total) * 100),
       sad: Math.floor((totals.sad / totals.total) * 100),
       surprised: Math.floor((totals.surprised / totals.total) * 100)
