@@ -19,6 +19,7 @@ class App extends Component {
 
     this.addUser = this.addUser.bind(this);
     this.getSnapshot = this.getSnapshot.bind(this);
+    this.setupWebcam = this.setupWebcam.bind(this);
     this.toggleRekognition = this.toggleRekognition.bind(this);
 
     this.state = {
@@ -32,10 +33,10 @@ class App extends Component {
       detectedFaces: [],
       detectedPeople: [],
       happyometer: 50,
-      people: [],
       readyToStream: false,
       rekognizing: false,
-      webcamCoordinates: {}
+      webcamCoordinates: {},
+      webcamInstance: undefined
     };
   }
 
@@ -43,11 +44,13 @@ class App extends Component {
     return gateway.addUser(params);
   }
 
-  getSnapshot() {
+  getSnapshot(people) {
     this.setState({
-      webcamCoordinates: findDOMNode(this.webcam).getBoundingClientRect()
+      webcamCoordinates: findDOMNode(
+        this.state.webcamInstance
+      ).getBoundingClientRect()
     });
-    const image = this.webcam.getScreenshot();
+    const image = this.state.webcamInstance.getScreenshot();
     const b64Encoded = image.split(",")[1];
 
     gateway.getEngagement().then(response => {
@@ -69,11 +72,11 @@ class App extends Component {
         return result;
       });
 
-      this.setState({ detectedFaces }, () => {
-        if (this.state.rekognizing) {
-          setTimeout(this.getSnapshot, 300);
-        }
-      });
+      this.setState({ detectedFaces });
+
+      if (this.state.rekognizing) {
+        setTimeout(() => this.getSnapshot(people), 300);
+      }
     });
 
     gateway.searchFaces(b64Encoded).then(response => {
@@ -82,7 +85,7 @@ class App extends Component {
         response.FaceMatches.forEach(match => {
           const externalImageId = match.Face.ExternalImageId;
           detectedPeople.push(
-            this.state.people.find(x => x.externalImageId === externalImageId)
+            people.find(x => x.externalImageId === externalImageId)
           );
         });
       }
@@ -90,31 +93,29 @@ class App extends Component {
     });
   }
 
-  toggleRekognition() {
-    this.setState(
-      {
-        rekognizing: !this.state.rekognizing
-      },
-      () => {
-        if (this.state.rekognizing) {
-          gateway.getPeople().then(response => {
-            this.setState({ people: response.people }, this.getSnapshot);
-          });
-        }
-      }
-    );
-  }
+  setupWebcam(instance) {
+    this.setState({ webcamInstance: instance });
 
-  componentDidMount() {
     const checkIfReady = () => {
-      if (this.webcam && this.webcam.state && this.webcam.state.hasUserMedia) {
-        this.setState({
-          readyToStream: true
-        });
+      if (
+        this.state.webcamInstance &&
+        this.state.webcamInstance.state &&
+        this.state.webcamInstance.state.hasUserMedia
+      ) {
+        this.setState({ readyToStream: true });
       } else setTimeout(checkIfReady, 250);
     };
 
     checkIfReady();
+  }
+
+  toggleRekognition() {
+    const rekognizing = !this.state.rekognizing;
+    this.setState({ rekognizing });
+
+    if (rekognizing) {
+      gateway.getPeople().then(response => this.getSnapshot(response.people));
+    }
   }
 
   render() {
@@ -133,7 +134,7 @@ class App extends Component {
                 <Row>
                   <Col md={8} sm={6}>
                     <Webcam
-                      ref={webcam => (this.webcam = webcam)}
+                      ref={this.setupWebcam}
                       screenshotFormat="image/jpeg"
                       videoConstraints={{
                         width: 1280,
