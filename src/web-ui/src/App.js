@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { findDOMNode } from "react-dom";
 import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
@@ -13,55 +13,42 @@ import faceDetailsMapper from "./utils/faceDetailsMapper";
 import getChartData from "./utils/getChartData";
 import gateway from "./utils/gateway";
 
-class App extends Component {
-  constructor() {
-    super();
+export default () => {
+  const [aggregate, setAggregate] = useState({
+    angry: 0,
+    calm: 0,
+    happy: 0,
+    sad: 0,
+    surprised: 0
+  });
 
-    this.addUser = this.addUser.bind(this);
-    this.getSnapshot = this.getSnapshot.bind(this);
-    this.setupWebcam = this.setupWebcam.bind(this);
-    this.toggleRekognition = this.toggleRekognition.bind(this);
+  const [detectedFaces, setDetectedFaces] = useState([]);
+  const [detectedPeople, setDetectedPeople] = useState([]);
+  const [happyometer, setHappyometer] = useState(50);
+  const [iterating, setIterating] = useState(false);
+  const [iterationCompleted, setIterationCompleted] = useState(false);
+  const [people, setPeople] = useState([]);
+  const [readyToStream, setReadyToStream] = useState(false);
+  const [webcamCoordinates, setWebcamCoordinates] = useState({});
+  const [webcamInstance, setWebcamInstance] = useState(undefined);
 
-    this.state = {
-      aggregate: {
-        angry: 0,
-        calm: 0,
-        happy: 0,
-        sad: 0,
-        surprised: 0
-      },
-      detectedFaces: [],
-      detectedPeople: [],
-      happyometer: 50,
-      readyToStream: false,
-      rekognizing: false,
-      webcamCoordinates: {},
-      webcamInstance: undefined
-    };
-  }
+  const addUser = params => gateway.addUser(params);
 
-  addUser(params) {
-    return gateway.addUser(params);
-  }
+  const getSnapshot = () => {
+    setWebcamCoordinates(findDOMNode(webcamInstance).getBoundingClientRect());
 
-  getSnapshot(people) {
-    this.setState({
-      webcamCoordinates: findDOMNode(
-        this.state.webcamInstance
-      ).getBoundingClientRect()
-    });
-    const image = this.state.webcamInstance.getScreenshot();
+    const image = webcamInstance.getScreenshot();
     const b64Encoded = image.split(",")[1];
 
     gateway.getEngagement().then(response => {
       const chartData = getChartData(response);
 
       if (chartData.happyometer) {
-        this.setState({ happyometer: chartData.happyometer });
+        setHappyometer(chartData.happyometer);
       }
 
       if (chartData.aggregate) {
-        this.setState({ aggregate: chartData.aggregate });
+        setAggregate(chartData.aggregate);
       }
     });
 
@@ -71,12 +58,8 @@ class App extends Component {
         gateway.postEngagement(result).then(() => {});
         return result;
       });
-
-      this.setState({ detectedFaces });
-
-      if (this.state.rekognizing) {
-        setTimeout(() => this.getSnapshot(people), 300);
-      }
+      setDetectedFaces(detectedFaces);
+      setIterationCompleted(true);
     });
 
     gateway.searchFaces(b64Encoded).then(response => {
@@ -84,104 +67,110 @@ class App extends Component {
       if (response.FaceMatches) {
         response.FaceMatches.forEach(match => {
           const externalImageId = match.Face.ExternalImageId;
-          detectedPeople.push(
-            people.find(x => x.externalImageId === externalImageId)
+          const matched = people.find(
+            x => x.externalImageId === externalImageId
           );
+          if (matched) detectedPeople.push(matched);
         });
       }
-      this.setState({ detectedPeople });
+      setDetectedPeople(detectedPeople);
     });
-  }
+  };
 
-  setupWebcam(instance) {
-    this.setState({ webcamInstance: instance });
+  const setupWebcam = instance => {
+    setWebcamInstance(instance);
 
     const checkIfReady = () => {
       if (
-        this.state.webcamInstance &&
-        this.state.webcamInstance.state &&
-        this.state.webcamInstance.state.hasUserMedia
+        webcamInstance &&
+        webcamInstance.state &&
+        webcamInstance.state.hasUserMedia
       ) {
-        this.setState({ readyToStream: true });
+        setReadyToStream(true);
       } else setTimeout(checkIfReady, 250);
     };
 
     checkIfReady();
-  }
+  };
 
-  toggleRekognition() {
-    const rekognizing = !this.state.rekognizing;
-    this.setState({ rekognizing });
+  const toggleRekognition = () => {
+    const newIterationState = !iterating;
+    setIterating(newIterationState);
 
-    if (rekognizing) {
-      gateway.getPeople().then(response => this.getSnapshot(response.people));
+    if (newIterationState) {
+      setIterationCompleted(false);
+      gateway.getPeople().then(response => {
+        setPeople(response.people);
+        getSnapshot();
+      });
     }
-  }
+  };
 
-  render() {
-    return (
-      <div className="App">
-        <Header
-          toggleRekognition={this.toggleRekognition}
-          addUser={this.addUser}
-          readyToStream={this.state.readyToStream}
-        />
-        <Grid>
-          <CameraHelp show={!this.state.readyToStream} />
-          <Row>
-            <Col md={8} sm={6}>
-              <Grid>
-                <Row>
-                  <Col md={8} sm={6}>
-                    <Webcam
-                      ref={this.setupWebcam}
-                      screenshotFormat="image/jpeg"
-                      videoConstraints={{
-                        width: 1280,
-                        height: 640,
-                        facingMode: "user"
-                      }}
-                      width="100%"
-                      height="100%"
-                    />
-                  </Col>
-                  <Col md={4} sm={6}>
-                    <EngagementSummary
-                      detectedFaces={this.state.detectedFaces}
-                      detectedPeople={this.state.detectedPeople}
-                      webcamCoordinates={this.state.webcamCoordinates}
-                    />
-                  </Col>
-                </Row>
-                <Row style={{ marginTop: "20px" }}>
-                  <Col md={4} sm={6}>
-                    <h3>Trends for last hour</h3>
-                    <PolarChart
-                      data={Object.keys(this.state.aggregate).map(
-                        sentiment => ({
-                          x: sentiment,
-                          y: this.state.aggregate[sentiment]
-                        })
-                      )}
-                    />
-                  </Col>
-                  <Col md={4} sm={6}>
-                    <h3 style={{ marginBottom: "40px" }}>Engagement Meter</h3>
-                    <HalfCircleMeter
-                      backgroundColor="#fff"
-                      foregroundColor="#FF9900"
-                      value={this.state.happyometer}
-                      size={250}
-                    />
-                  </Col>
-                </Row>
-              </Grid>
-            </Col>
-          </Row>
-        </Grid>
-      </div>
-    );
-  }
-}
+  useEffect(() => {
+    if (iterating && iterationCompleted) {
+      setIterationCompleted(false);
+      setTimeout(getSnapshot, 300);
+    }
+  }, [iterating, iterationCompleted]);
 
-export default App;
+  return (
+    <div className="App">
+      <Header
+        toggleRekognition={toggleRekognition}
+        addUser={addUser}
+        readyToStream={readyToStream}
+      />
+      <Grid>
+        <CameraHelp show={!readyToStream} />
+        <Row>
+          <Col md={8} sm={6}>
+            <Grid>
+              <Row>
+                <Col md={8} sm={6}>
+                  <Webcam
+                    ref={setupWebcam}
+                    screenshotFormat="image/jpeg"
+                    videoConstraints={{
+                      width: 1280,
+                      height: 640,
+                      facingMode: "user"
+                    }}
+                    width="100%"
+                    height="100%"
+                  />
+                </Col>
+                <Col md={4} sm={6}>
+                  <EngagementSummary
+                    detectedFaces={detectedFaces}
+                    detectedPeople={detectedPeople}
+                    webcamCoordinates={webcamCoordinates}
+                  />
+                </Col>
+              </Row>
+              <Row style={{ marginTop: "20px" }}>
+                <Col md={4} sm={6}>
+                  <h3>Trends for last hour</h3>
+                  <PolarChart
+                    data={Object.keys(aggregate).map(sentiment => ({
+                      x: sentiment,
+                      y: aggregate[sentiment]
+                    }))}
+                  />
+                </Col>
+                <Col md={4} sm={6}>
+                  <h3 style={{ marginBottom: "40px" }}>Engagement Meter</h3>
+                  <HalfCircleMeter
+                    backgroundColor="#fff"
+                    foregroundColor="#FF9900"
+                    value={happyometer}
+                    size={250}
+                  />
+                </Col>
+              </Row>
+            </Grid>
+          </Col>
+        </Row>
+      </Grid>
+    </div>
+  );
+};
