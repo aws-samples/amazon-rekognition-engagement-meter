@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { findDOMNode } from "react-dom";
 import Webcam from "react-webcam";
 import { HalfCircleMeter } from "react-svg-meters";
@@ -25,19 +25,19 @@ export default () => {
   const [detectedFaces, setDetectedFaces] = useState([]);
   const [detectedPeople, setDetectedPeople] = useState([]);
   const [happyometer, setHappyometer] = useState(50);
-  const [iterating, setIterating] = useState(false);
-  const [iterationCompleted, setIterationCompleted] = useState(false);
-  const [people, setPeople] = useState([]);
   const [readyToStream, setReadyToStream] = useState(false);
   const [webcamCoordinates, setWebcamCoordinates] = useState({});
-  const [webcamInstance, setWebcamInstance] = useState(undefined);
+
+  const iterating = useRef(false);
+  const people = useRef([]);
+  const webcam = useRef(undefined);
 
   const addUser = params => gateway.addUser(params);
 
   const getSnapshot = () => {
-    setWebcamCoordinates(findDOMNode(webcamInstance).getBoundingClientRect());
+    setWebcamCoordinates(findDOMNode(webcam.current).getBoundingClientRect());
 
-    const image = webcamInstance.getScreenshot();
+    const image = webcam.current.getScreenshot();
     const b64Encoded = image.split(",")[1];
 
     gateway.getEngagement().then(response => {
@@ -59,7 +59,10 @@ export default () => {
         return result;
       });
       setDetectedFaces(detectedFaces);
-      setIterationCompleted(true);
+
+      if (iterating.current) {
+        setTimeout(getSnapshot, 300);
+      }
     });
 
     gateway.searchFaces(b64Encoded).then(response => {
@@ -67,10 +70,9 @@ export default () => {
       if (response.FaceMatches) {
         response.FaceMatches.forEach(match => {
           const externalImageId = match.Face.ExternalImageId;
-          const matched = people.find(
-            x => x.externalImageId === externalImageId
+          detectedPeople.push(
+            people.current.find(x => x.externalImageId === externalImageId)
           );
-          if (matched) detectedPeople.push(matched);
         });
       }
       setDetectedPeople(detectedPeople);
@@ -78,13 +80,13 @@ export default () => {
   };
 
   const setupWebcam = instance => {
-    setWebcamInstance(instance);
+    webcam.current = instance;
 
     const checkIfReady = () => {
       if (
-        webcamInstance &&
-        webcamInstance.state &&
-        webcamInstance.state.hasUserMedia
+        webcam.current &&
+        webcam.current.state &&
+        webcam.current.state.hasUserMedia
       ) {
         setReadyToStream(true);
       } else setTimeout(checkIfReady, 250);
@@ -94,24 +96,15 @@ export default () => {
   };
 
   const toggleRekognition = () => {
-    const newIterationState = !iterating;
-    setIterating(newIterationState);
+    iterating.current = !iterating.current;
 
-    if (newIterationState) {
-      setIterationCompleted(false);
+    if (iterating.current) {
       gateway.getPeople().then(response => {
-        setPeople(response.people);
+        people.current = response.people;
         getSnapshot();
       });
     }
   };
-
-  useEffect(() => {
-    if (iterating && iterationCompleted) {
-      setIterationCompleted(false);
-      setTimeout(getSnapshot, 300);
-    }
-  }, [iterating, iterationCompleted]);
 
   return (
     <div className="App">
