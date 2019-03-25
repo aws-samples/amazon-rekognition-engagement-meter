@@ -1,30 +1,19 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 
-class RekognitionButton extends Component {
-  constructor() {
-    super();
-    this.state = {
-      started: false
-    };
-  }
+export default props => {
+  const [started, setStarted] = useState(false);
 
-  render() {
-    return (
-      <Button
-        bsStyle={this.state.started ? "danger" : "success"}
-        onClick={e => {
-          this.setState({
-            started: !this.state.started
-          });
-          this.props.onClick(e);
-        }}
-        disabled={!this.props.enabled}
-      >
-        {this.state.started ? "Stop" : "Start"} Rekognition
-      </Button>
-    );
-  }
-}
-
-export default RekognitionButton;
+  return (
+    <Button
+      bsStyle={started ? "danger" : "success"}
+      onClick={e => {
+        setStarted(!started);
+        props.onClick(e);
+      }}
+      disabled={!props.enabled}
+    >
+      {started ? "Stop" : "Start"} Rekognition
+    </Button>
+  );
+};
