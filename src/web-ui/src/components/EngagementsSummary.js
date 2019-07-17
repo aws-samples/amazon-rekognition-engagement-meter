@@ -16,27 +16,34 @@ const filterAndSortEmotions = face =>
       } else return 0;
     });
 
-export default props => (
+export default ({
+  detectedFaces,
+  detectedPeople,
+  showFaceBoundingBoxes,
+  webcamCoordinates
+}) => (
   <div>
-    {props.detectedFaces.map((face, index) => (
+    {detectedFaces.map((face, index) => (
       <div key={index}>
-        <div
-          style={{
-            border: "1px solid #f0ad4e",
-            fontWeight: "bold",
-            position: "fixed",
-            height: props.webcamCoordinates.height * face.boundingBox.Height,
-            left:
-              props.webcamCoordinates.left +
-              face.boundingBox.Left * props.webcamCoordinates.width,
-            top:
-              props.webcamCoordinates.top +
-              face.boundingBox.Top * props.webcamCoordinates.height,
-            width: props.webcamCoordinates.width * face.boundingBox.Width
-          }}
-        >
-          Person #{index + 1}
-        </div>
+        {showFaceBoundingBoxes && (
+          <div
+            style={{
+              border: "1px solid #f0ad4e",
+              fontWeight: "bold",
+              position: "fixed",
+              height: webcamCoordinates.height * face.boundingBox.Height,
+              left:
+                webcamCoordinates.left +
+                face.boundingBox.Left * webcamCoordinates.width,
+              top:
+                webcamCoordinates.top +
+                face.boundingBox.Top * webcamCoordinates.height,
+              width: webcamCoordinates.width * face.boundingBox.Width
+            }}
+          >
+            Person #{index + 1}
+          </div>
+        )}
         <Table responsive>
           <thead>
             <tr>
@@ -61,7 +68,7 @@ export default props => (
         </Table>
       </div>
     ))}
-    {props.detectedPeople.map(person => (
+    {detectedPeople.map(person => (
       <p key={person.externalImageId}>
         Welcome <b>{person.memberName}</b> ({person.jobTitle})
       </p>
