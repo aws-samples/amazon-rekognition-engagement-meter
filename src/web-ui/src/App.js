@@ -116,7 +116,7 @@ export default () => {
       <Grid>
         <CameraHelp show={!readyToStream} />
         <Row>
-          <Col md={8} sm={6}>
+          <Col md={12} sm={6}>
             <Grid>
               <Row>
                 <Col md={8} sm={6}>
@@ -131,32 +131,37 @@ export default () => {
                     width="100%"
                     height="100%"
                   />
+                  <Grid>
+                    <Row style={{ marginTop: "20px" }}>
+                      <Col md={4} sm={3}>
+                        <h3>Trends for last hour</h3>
+                        <PolarChart
+                          data={Object.keys(aggregate).map(sentiment => ({
+                            x: sentiment,
+                            y: aggregate[sentiment]
+                          }))}
+                        />
+                      </Col>
+                      <Col md={4} sm={3}>
+                        <h3 style={{ marginBottom: "40px" }}>
+                          Engagement Meter
+                        </h3>
+                        <HalfCircleMeter
+                          backgroundColor="#fff"
+                          foregroundColor="#FF9900"
+                          value={happyometer}
+                          size={250}
+                        />
+                      </Col>
+                    </Row>
+                  </Grid>
                 </Col>
                 <Col md={4} sm={6}>
                   <EngagementSummary
                     detectedFaces={detectedFaces}
                     detectedPeople={detectedPeople}
+                    showFaceBoundingBoxes={iterating.current}
                     webcamCoordinates={webcamCoordinates}
-                  />
-                </Col>
-              </Row>
-              <Row style={{ marginTop: "20px" }}>
-                <Col md={4} sm={6}>
-                  <h3>Trends for last hour</h3>
-                  <PolarChart
-                    data={Object.keys(aggregate).map(sentiment => ({
-                      x: sentiment,
-                      y: aggregate[sentiment]
-                    }))}
-                  />
-                </Col>
-                <Col md={4} sm={6}>
-                  <h3 style={{ marginBottom: "40px" }}>Engagement Meter</h3>
-                  <HalfCircleMeter
-                    backgroundColor="#fff"
-                    foregroundColor="#FF9900"
-                    value={happyometer}
-                    size={250}
                   />
                 </Col>
               </Row>
