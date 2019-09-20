@@ -13,6 +13,7 @@ The Engagement Meter is a web application that calculates and displays engagemen
   * [Deployment](#deployment)
   * [Accessing the application](#accessing-the-application)
 * [Remove the application](#remove-the-application)
+* [Making changes to the code and customization](#making-changes-to-the-code-and-customization)
 * [Contributing](#contributing)
 
 ### Architecture
@@ -101,6 +102,10 @@ The application is accessed using a web browser. The address is the *url* output
 ### Remove the application
 
 To remove the application open the AWS CloudFormation Console, click the Engagement Meter project, right-click and select "*Delete Stack*". Your stack will take some time to be deleted. You can track its progress in the "Events" tab. When it is done, the status will change from DELETE_IN_PROGRESS" to "DELETE_COMPLETE". It will then disappear from the list.
+
+### Making changes to the code and customization
+
+The [contributing guidelines](CONTRIBUTING.md) contains some instructions about how to run the front-end locally and make changes to the back-end stack.
 
 ## Contributing
 
