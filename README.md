@@ -74,6 +74,7 @@ You are responsible for the cost of the AWS services used while running this sam
 1. On the "*Specify stack details*" screen you may customize the following parameters of the CloudFormation stack:
    * **Stack Name:** (Default: EngagementMeter) This is the name that is used to refer to this stack in CloudFormation once deployed. The value must be 15 characters or less.
    * **CollectionId:** (Default: RekogDemo) AWS Resources are named based on the value of this parameter. You must customise this if you are launching more than one instance of the stack within the same account.
+   * **IncludeCloudFrontDistribution**  (Default: false) The Web UI needs to be publicly accessible. If you have S3 public ACLs blocked on an account level, you can enable CloudFront to circumvent that.
 
    When completed, click *Next*
 1. [Configure stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html) if desired, then click *Next*.
