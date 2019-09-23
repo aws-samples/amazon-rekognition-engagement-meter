@@ -9,6 +9,7 @@ Globals:
         COGNITO_IDENTITY_POOL: !Ref CognitoIdentityPool
         COLLECTION_ID: !Ref CollectionId
         FROM_BUCKET: rekognition-engagement-meter
+        CREATE_CLOUDFRONT_DISTRIBUTION: !Ref CreateCloudFrontDistribution
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
   Api:
@@ -18,12 +19,25 @@ Globals:
       AllowOrigin: "'*'"
 Parameters:
   CollectionId:
+    Description: AWS Resources are named based on the value of this parameter. You must customise this if you are launching more than one instance of the stack within the same account.
     Type: String
     Default: RekogDemo
     AllowedPattern : ^[a-zA-Z0-9_]*$
+  CreateCloudFrontDistribution:
+    Description: Creates a CloudFront distribution for accessing the web interface of the demo. This must be enabled if S3 Block Public Access is enabled at an account level.```
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+Conditions:
+  WithCloudFront: !Equals [!Ref CreateCloudFrontDistribution, 'true']
 Outputs:
   url:
-    Value: !Sub https://${WebUIBucket}.s3.amazonaws.com/index.html
+    Value: !If 
+      - WithCloudFront
+      - !Sub 'https://${CloudFrontDistribution.DomainName}'
+      - !Sub 'https://${WebUIBucket.RegionalDomainName}/index.html'
     Description: Engagement Meter URL
 Resources:
   SetupRekognitionAndWebUI:
@@ -41,6 +55,18 @@ Resources:
           AllowedOrigins: ['*']
           Id: !Sub RekogCorsRule${CollectionId}
           MaxAge: 3600
+  WebUIBucketReadPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: WithCloudFront
+    Properties:
+      Bucket: !Ref WebUIBucket
+      PolicyDocument:
+        Statement:
+        - Action: s3:GetObject
+          Effect: Allow
+          Resource: !Sub arn:aws:s3:::${WebUIBucket}/*
+          Principal:
+            CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
   CognitoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
@@ -592,3 +618,37 @@ Resources:
       MemorySize: 128
       Timeout: 30
       Role: !GetAtt CustomResourceRole.Arn
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Condition: WithCloudFront
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref WebUIBucket
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Condition: WithCloudFront
+    Properties:       
+      DistributionConfig:
+        Origins:
+        - DomainName: !GetAtt WebUIBucket.RegionalDomainName
+          Id: !Sub myS3Origin-${CollectionId}
+          S3OriginConfig:
+            OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}
+        Enabled: true
+        HttpVersion: http2
+        Comment: The Distribution for the Rekognition Meter Web UI
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - HEAD
+          - GET
+          - OPTIONS
+          TargetOriginId: !Sub myS3Origin-${CollectionId}
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true

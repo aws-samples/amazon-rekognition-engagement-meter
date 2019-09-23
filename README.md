@@ -13,6 +13,7 @@ The Engagement Meter is a web application that calculates and displays engagemen
   * [Deployment](#deployment)
   * [Accessing the application](#accessing-the-application)
 * [Remove the application](#remove-the-application)
+* [Making changes to the code and customization](#making-changes-to-the-code-and-customization)
 * [Contributing](#contributing)
 
 ### Architecture
@@ -74,6 +75,7 @@ You are responsible for the cost of the AWS services used while running this sam
 1. On the "*Specify stack details*" screen you may customize the following parameters of the CloudFormation stack:
    * **Stack Name:** (Default: EngagementMeter) This is the name that is used to refer to this stack in CloudFormation once deployed. The value must be 15 characters or less.
    * **CollectionId:** (Default: RekogDemo) AWS Resources are named based on the value of this parameter. You must customise this if you are launching more than one instance of the stack within the same account.
+   * **CreateCloudFrontDistribution**  (Default: false) Creates a CloudFront distribution for accessing the web interface of the demo. This must be enabled if S3 Block Public Access is enabled at an account level. **Note:** Creating a CloudFront distribution may significantly increase the deploy time (from approximately 5 minutes to over 30 minutes)
 
    When completed, click *Next*
 1. [Configure stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html) if desired, then click *Next*.
@@ -100,6 +102,10 @@ The application is accessed using a web browser. The address is the *url* output
 ### Remove the application
 
 To remove the application open the AWS CloudFormation Console, click the Engagement Meter project, right-click and select "*Delete Stack*". Your stack will take some time to be deleted. You can track its progress in the "Events" tab. When it is done, the status will change from DELETE_IN_PROGRESS" to "DELETE_COMPLETE". It will then disappear from the list.
+
+### Making changes to the code and customization
+
+The [contributing guidelines](CONTRIBUTING.md) contains some instructions about how to run the front-end locally and make changes to the back-end stack.
 
 ## Contributing
 
