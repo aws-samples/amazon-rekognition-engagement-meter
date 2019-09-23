@@ -2,7 +2,7 @@ const {
   API_GATEWAY,
   COGNITO_IDENTITY_POOL,
   FROM_BUCKET,
-  INCLUDE_CLOUDFRONT_DISTRIBUTION,
+  CREATE_CLOUDFRONT_DISTRIBUTION,
   REGION,
   TO_BUCKET
 } = process.env;
@@ -11,7 +11,7 @@ const CONFIG_FILENAME = "settings.js";
 const FROM_PREFIX = "static/";
 
 const ACL =
-  INCLUDE_CLOUDFRONT_DISTRIBUTION == "true" ? "private" : "public-read";
+  CREATE_CLOUDFRONT_DISTRIBUTION == "true" ? "private" : "public-read";
 
 module.exports = s3 => {
   const copyFile = params => s3.copyObject(params).promise();

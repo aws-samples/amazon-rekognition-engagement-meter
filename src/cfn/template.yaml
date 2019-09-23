@@ -9,7 +9,7 @@ Globals:
         COGNITO_IDENTITY_POOL: !Ref CognitoIdentityPool
         COLLECTION_ID: !Ref CollectionId
         FROM_BUCKET: rekognition-engagement-meter
-        INCLUDE_CLOUDFRONT_DISTRIBUTION: !Ref IncludeCloudFrontDistribution
+        CREATE_CLOUDFRONT_DISTRIBUTION: !Ref CreateCloudFrontDistribution
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
   Api:
@@ -23,7 +23,7 @@ Parameters:
     Type: String
     Default: RekogDemo
     AllowedPattern : ^[a-zA-Z0-9_]*$
-  IncludeCloudFrontDistribution:
+  CreateCloudFrontDistribution:
     Description: Creates a CloudFront distribution for accessing the web interface of the demo. This must be enabled if S3 Block Public Access is enabled at an account level.```
     Type: String
     Default: "false"
@@ -31,7 +31,7 @@ Parameters:
       - "true"
       - "false"
 Conditions:
-  WithCloudFront: !Equals [!Ref IncludeCloudFrontDistribution, 'true']
+  WithCloudFront: !Equals [!Ref CreateCloudFrontDistribution, 'true']
 Outputs:
   url:
     Value: !If 
