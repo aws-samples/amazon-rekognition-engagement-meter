@@ -24,7 +24,7 @@ Parameters:
     Default: RekogDemo
     AllowedPattern : ^[a-zA-Z0-9_]*$
   IncludeCloudFrontDistribution:
-    Description: The Web UI needs to be publicly accessible. If you have S3 public ACLs blocked on an account level, you can enable CloudFront to circumvent that.
+    Description: Creates a CloudFront distribution for accessing the web interface of the demo. This must be enabled if S3 Block Public Access is enabled at an account level.```
     Type: String
     Default: "false"
     AllowedValues:
