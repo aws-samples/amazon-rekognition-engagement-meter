@@ -648,7 +648,7 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
-          ViewerProtocolPolicy: allow-all
+          ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
