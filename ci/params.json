@@ -1,4 +1,7 @@
 [{
   "ParameterKey": "CollectionId",
   "ParameterValue": "$[taskcat_random-string]"
+},{
+  "ParameterKey": "CreateCloudFrontDistribution",
+  "ParameterValue": "false"
 }]
