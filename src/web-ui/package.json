@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "aws-amplify": "1.1.18",
-    "react": "16.8.4",
+    "aws-amplify": "1.1.40",
+    "react": "16.9.0",
     "react-bootstrap": "0.32.4",
-    "react-dom": "16.8.4",
-    "react-scripts": "3.0.1",
+    "react-dom": "16.9.0",
+    "react-scripts": "3.1.2",
     "react-svg-meters": "0.1.7",
     "react-webcam": "1.0.4",
     "uuid": "3.3.2",
-    "victory": "31.0.2"
+    "victory": "33.0.6"
   },
   "scripts": {
     "start": "export HTTPS=true && react-scripts start",
