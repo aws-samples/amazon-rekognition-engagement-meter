@@ -10,6 +10,7 @@ export default ({ show }) => {
           the front-end code from your local machine, you may need to follow{" "}
           <a
             href="https://github.com/aws-samples/amazon-rekognition-engagement-meter/blob/master/CONTRIBUTING.md#working-with-the-web-ui"
+            rel="noopener noreferrer"
             target="_blank"
           >
             this guide
