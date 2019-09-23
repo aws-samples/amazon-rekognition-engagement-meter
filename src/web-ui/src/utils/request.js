@@ -1,20 +1,12 @@
 import Amplify, { API } from "aws-amplify";
 
-const region = window.rekognitionSettings.region || "eu-west-1";
+const settings = window.rekognitionSettings || {};
+const region = settings.region || "eu-west-1";
 
 Amplify.configure({
-  Auth: {
-    identityPoolId: window.rekognitionSettings.cognitoIdentityPool,
-    region
-  },
+  Auth: { identityPoolId: settings.cognitoIdentityPool, region },
   API: {
-    endpoints: [
-      {
-        name: "apiGateway",
-        endpoint: window.rekognitionSettings.apiGateway,
-        region
-      }
-    ]
+    endpoints: [{ name: "apiGateway", endpoint: settings.apiGateway, region }]
   }
 });
 
