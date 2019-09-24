@@ -8,6 +8,7 @@ import CameraHelp from "./components/CameraHelp";
 import EngagementSummary from "./components/EngagementsSummary";
 import Header from "./components/Header";
 import PolarChart from "./components/PolarChart";
+import SettingsHelp from "./components/SettingsHelp";
 
 import faceDetailsMapper from "./utils/faceDetailsMapper";
 import getChartData from "./utils/getChartData";
@@ -114,6 +115,7 @@ export default () => {
         readyToStream={readyToStream}
       />
       <Grid>
+        <SettingsHelp show={!window.rekognitionSettings} />
         <CameraHelp show={!readyToStream} />
         <Row>
           <Col md={12} sm={6}>
