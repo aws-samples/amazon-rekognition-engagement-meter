@@ -1,40 +1,45 @@
+const mime = require("mime-types");
+const unzip = require("unzipper");
+
 const {
   API_GATEWAY,
   COGNITO_IDENTITY_POOL,
   FROM_BUCKET,
   CREATE_CLOUDFRONT_DISTRIBUTION,
   REGION,
-  TO_BUCKET
+  TO_BUCKET,
+  VERSION
 } = process.env;
 
 const CONFIG_FILENAME = "settings.js";
-const FROM_PREFIX = "static/";
+const SOLUTION_KEY = `amazon-rekognition-engagement-meter/v${VERSION}`;
+const FRONTEND_PATH = `${SOLUTION_KEY}/frontend.zip`;
 
 const ACL =
   CREATE_CLOUDFRONT_DISTRIBUTION == "true" ? "private" : "public-read";
 
 module.exports = s3 => {
-  const copyFile = params => s3.copyObject(params).promise();
   const deleteFile = params => s3.deleteObject(params).promise();
   const listFiles = params => s3.listObjects(params).promise();
+  const upload = params => s3.upload(params).promise();
 
   return {
     copyFiles: () =>
-      listFiles({
-        Bucket: FROM_BUCKET,
-        Prefix: FROM_PREFIX
-      }).then(result =>
-        Promise.all(
-          result.Contents.map(file =>
-            copyFile({
+      unzip.Open.s3(s3, { Bucket: FROM_BUCKET, Key: FRONTEND_PATH })
+        .then(directory => directory.files.filter(x => x.type !== "Directory"))
+        .then(files =>
+          files.map(file =>
+            upload({
               ACL,
+              Body: file.stream(),
               Bucket: TO_BUCKET,
-              CopySource: `${FROM_BUCKET}/${file.Key}`,
-              Key: file.Key.slice(FROM_PREFIX.length)
+              ContentType: mime.lookup(file.path) || "application/octet-stream",
+              Key: file.path
             })
           )
         )
-      ),
+        .then(ps => Promise.all(ps))
+        .then(() => console.log("Directory unzipped to S3")),
 
     removeFiles: () =>
       listFiles({

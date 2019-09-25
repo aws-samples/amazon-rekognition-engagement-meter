@@ -3,21 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run webui-build && npm run lambda-build && npm run cfn-build",
-    "cfn-build": "npm run cfn-package && npm run lambda-inline",
-    "cfn-deploy": "aws s3 cp ./templates/template.yaml s3://rekognition-engagement-meter/ --acl public-read",
+    "build": "npm run webui-build && npm run cfn-build && npm run webui-package",
+    "cfn-build": "npm run cfn-ensure-dist && cfn-flip -c -n -l src/cfn/template.yaml templates/template.yaml && npm run cfn-lambdas-dist && npm run cfn-copy-lambdas",
+    "cfn-copy-lambdas": "cp -R src/functions/setup ./backend/functions/setup/",
     "cfn-ensure-dist": "if [ ! -d './templates' ]; then mkdir templates; fi",
-    "cfn-package": "npm run cfn-ensure-dist && cfn-flip -c -n -l src/cfn/template.yaml templates/template.yaml",
-    "deploy": "npm run webui-deploy && npm run cfn-deploy",
-    "lambda-build": "cd src/functions/setup && npm run build",
+    "cfn-lambdas-dist": "if [ ! -d './backend/functions/setup/' ]; then mkdir -p backend/functions/setup/; fi",
+    "deploy": "npm run zip && aws s3 cp ./`npm run echo-version --silent`.zip s3://$CFN_BUCKET/$npm_package_name/`npm run echo-version --silent`/$npm_package_name.zip",
+    "echo-version": "echo v`node -e \"console.log(require('node-yaml').readSync('templates/template.yaml').Globals.Function.Environment.Variables.VERSION)\"`",
     "lambda-inline": "cd src/functions/setup && npm run inline",
     "pre-deploy-test": "taskcat -c ci/taskcat.yml --verbose --exclude docs --exclude src --exclude taskcat_outputs",
     "postinstall": "cd src/web-ui && npm i && cd ../functions/setup && npm i",
     "start": "cd src/web-ui && npm start",
+    "tag": "git tag `npm run echo-version --silent`",
     "test": "cfn-lint templates/template.yaml",
     "webui-build": "cd src/web-ui && npm run build",
-    "webui-deploy": "cd src/web-ui/build && aws s3 cp . s3://rekognition-engagement-meter/static --recursive --acl public-read --exclude settings.js --exclude .DS_Store",
-    "webui-deploy-clean": "aws s3 rm s3://rekognition-engagement-meter/static --recursive"
+    "webui-package": "cd src/web-ui/build && zip -r ../../../frontend.zip .",
+    "zip": "zip -r `npm run echo-version --silent`.zip -@ < ci/include.lst"
   },
   "repository": {
     "type": "git",
@@ -26,5 +27,9 @@
   "bugs": {
     "url": "https://github.com/aws-samples/amazon-rekognition-engagement-meter/issues"
   },
-  "homepage": "https://github.com/aws-samples/amazon-rekognition-engagement-meter#readme"
+  "homepage": "https://github.com/aws-samples/amazon-rekognition-engagement-meter#readme",
+  "devDependencies": {
+    "js-yaml": "3.13.1",
+    "node-yaml": "4.0.1"
+  }
 }
