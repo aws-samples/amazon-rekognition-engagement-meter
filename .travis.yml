@@ -8,14 +8,34 @@ before_script:
   - pyenv global 3.7
   - python --version
   - pip3 install -r requirements.txt --user
-  - npm run build
 
-after_success:
-  - if [ $TRAVIS_PULL_REQUEST == false ] && [ $TRAVIS_BRANCH == "master" ]; then
-        npm run pre-deploy-test;
-        pip3 install -r requirements.txt --user;
-        npm run deploy;
-      fi
+script:
+  - npm run build
+  - npm t
+  - if [ $TRAVIS_PULL_REQUEST == true ] && [ $TRAVIS_BRANCH != "master" ]; then
+      npm run tag;
+    fi
+
+before_deploy:
+  # - npm run pre-deploy-test
+  - export VERSION=${TRAVIS_TAG:-$(npm run echo-version --silent)}
+  - if [ -z "$TRAVIS_TAG" ]; then npm run tag; fi
+  - npm run zip
+
+deploy:
+  - provider: releases
+    api_key:
+      secure: 4b8eauaKcifpCUs1Usdb6aDuWCkyS4eJj0/OwhNBbBhBHIIDaFznaIDotqNasVnszZysiTF29eFiNCmFEV0R/Lh6iw5BsEqxa101hamIcmSUThOiOf4hjZFZ2qkmbeW+kzWlsGJ4KX/QVlff+ngeSGntM0gB5Ty1uepZ0J+Qla38NL1CFJkZ8BZkAKiwWDiiHkugHvH6dEROpI3zdk2YqG112c1Gm8GUQ20TYTudPfkexDNUMXuVa7VK7NNAmm259Jnx9Ip6PwhoD16uFXS6xKwGMFetwnU6U/1ujpPow40qpCBb67wn+5alWiOQFH1ADJCL6ORuIqWDvp5Fu2ImqFL8DzCWd+BXZAweoIDUBgOn82iNRXLttIcJsPpHIsTrsPB3F8fDkf1z2rBjhwyOgp/9iDiZWnn/vHYK3Svdqh8CRShDHGBxRxeixft+fs70v/+nLNnmZDPIYM7M0dKvE3DWl8kkaICPjUkzKNzq/Mkfl/6BxGVWexVNMkDs5ZSSrm5pwLd/NRf3VsLDEmzdG2/3eR69Co2YkLSPZkUN15Bt3oA+F6SdQP1oufh9NgK34wBiydNhQ9C7xerNswC3sgdrNydH3h6nV/Ksn2af/FcSxy8NF1FgDNlLn8gdCfeMd+DUa4FBnH8vPti2b3Fcht3GpQaW60vBOvj43mdBEcc=
+    file: $VERSION.zip
+    skip_cleanup: true
+    on:
+      branch: master
+      condition: type != pull_request
+  - provider: script
+    skip_cleanup: true
+    script: npm run deploy
+    on:
+      tags: true
 
 notifications:
   email: false

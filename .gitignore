@@ -1,6 +1,8 @@
 .DS_Store
 .python-version
+backend
 dist
+frontend.zip
 node_modules
 npm-debug.log*
 src/web-ui/build
