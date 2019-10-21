@@ -1,5 +1,4 @@
-aws-sam-translator==1.9.1
-awscli==1.16.96
+awscli==1.16.263
 cfn_flip==1.1.0
-cfn_lint==0.13.0
-taskcat==0.8.28
+cfn_lint==0.24.4
+taskcat==0.8.47

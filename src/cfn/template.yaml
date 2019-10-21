@@ -766,7 +766,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub RekogDemoSetup${CollectionId}
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       Handler: index.handler
       CodeUri: ../backend/functions/setup/
       Description: !Sub Custom Lambda resource for the ${CollectionId} Cloudformation Stack
