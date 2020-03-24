@@ -198,8 +198,12 @@ Resources:
             Principal:
               Federated:
                 - cognito-identity.amazonaws.com
-            Action:
-              - sts:AssumeRoleWithWebIdentity
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud": !Ref CognitoIdentityPool
+              ForAnyValue:StringLike:
+                "cognito-identity.amazonaws.com:amr": "unauthenticated"
   CustomResourceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -209,16 +213,17 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
+            Action: sts:AssumeRole
       Path: /
       Policies:
         - PolicyName: RekogDemo-setup-S3-fc
           PolicyDocument:
             Statement:
             - Effect: Allow
-              Action: 's3:*'
-              Resource: '*'
+              Action: s3:*
+              Resource:
+                - !Sub arn:aws:s3:::${WebUIBucket}
+                - !Sub arn:aws:s3:::${WebUIBucket}/*
         - PolicyName: RekogDemo-createRekColl
           PolicyDocument:
             Statement:
