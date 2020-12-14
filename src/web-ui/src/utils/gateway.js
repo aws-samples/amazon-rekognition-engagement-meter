@@ -1,17 +1,17 @@
 import request from "./request";
 import uuid from "uuid/v4";
 
-export default {
+const gateway = {
   addUser(params) {
     const externalImageId = uuid();
     return request("/faces/add", "post", {
       externalImageId,
-      image: params.image
+      image: params.image,
     }).then(() =>
       request("/people", "post", {
         externalImageId,
         memberName: params.fullName,
-        jobTitle: params.jobTitle
+        jobTitle: params.jobTitle,
       })
     );
   },
@@ -30,7 +30,7 @@ export default {
   },
 
   postEngagement(detectedFace) {
-    const normalize = x => detectedFace.emotions[x] || 0;
+    const normalize = (x) => detectedFace.emotions[x] || 0;
 
     return request(`/engagement`, "post", {
       timeDetected: new Date().getTime(),
@@ -38,11 +38,13 @@ export default {
       calm: normalize("CALM"),
       happy: normalize("HAPPY"),
       sad: normalize("SAD"),
-      surprised: normalize("SURPRISED")
+      surprised: normalize("SURPRISED"),
     });
   },
 
   searchFaces(image) {
     return request(`/faces/search`, "post", { image });
-  }
+  },
 };
+
+export default gateway;

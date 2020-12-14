@@ -5,10 +5,10 @@ import {
   ControlLabel,
   FormControl,
   FormGroup,
-  Modal
+  Modal,
 } from "react-bootstrap";
 
-export default props => {
+const AddUserModal = (props) => {
   const [show, setShow] = useState(false);
   const [fullName, setFullName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -16,16 +16,16 @@ export default props => {
   const [formState, setFormState] = useState("initial");
   const saveHandler = props.onSave;
 
-  const getValidationState = value => (!value ? "error" : "success");
+  const getValidationState = (value) => (!value ? "error" : "success");
 
-  const processImage = file => {
+  const processImage = (file) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => setImage(reader.result.split(",")[1]);
     reader.onerror = () => setFormState("error");
   };
 
-  const submitForm = e => {
+  const submitForm = (e) => {
     setFormState("saving");
     e.preventDefault();
     saveHandler({ fullName, jobTitle, image })
@@ -33,7 +33,7 @@ export default props => {
       .catch(() => setFormState("error"));
   };
 
-  const toggle = reset => {
+  const toggle = (reset) => {
     setShow(!show);
     if (reset) {
       setFormState("initial");
@@ -66,7 +66,7 @@ export default props => {
           <Alert
             bsStyle="warning"
             style={{
-              display: formState === "saving" ? "block" : "none"
+              display: formState === "saving" ? "block" : "none",
             }}
           >
             Please wait
@@ -74,7 +74,7 @@ export default props => {
           <Alert
             bsStyle="danger"
             style={{
-              display: formState === "error" ? "block" : "none"
+              display: formState === "error" ? "block" : "none",
             }}
           >
             An error happened. Retry.
@@ -82,14 +82,14 @@ export default props => {
           <Alert
             bsStyle="success"
             style={{
-              display: formState === "saved" ? "block" : "none"
+              display: formState === "saved" ? "block" : "none",
             }}
           >
             The user has been added.
           </Alert>
           <form
             style={{
-              display: formState === "initial" ? "block" : "none"
+              display: formState === "initial" ? "block" : "none",
             }}
           >
             <FormGroup
@@ -101,7 +101,7 @@ export default props => {
                 type="text"
                 value={fullName}
                 placeholder="Full Name e.g. Jane Doe"
-                onChange={e => setFullName(e.target.value)}
+                onChange={(e) => setFullName(e.target.value)}
               />
               <FormControl.Feedback />
             </FormGroup>
@@ -114,7 +114,7 @@ export default props => {
                 type="text"
                 value={jobTitle}
                 placeholder="Job Title e.g. CEO"
-                onChange={e => setJobTitle(e.target.value)}
+                onChange={(e) => setJobTitle(e.target.value)}
               />
               <FormControl.Feedback />
             </FormGroup>
@@ -125,7 +125,7 @@ export default props => {
               <ControlLabel>Photo</ControlLabel>
               <FormControl
                 type="file"
-                onChange={e => processImage(e.target.files[0])}
+                onChange={(e) => processImage(e.target.files[0])}
                 id="image"
               />
               <FormControl.Feedback />
@@ -150,3 +150,5 @@ export default props => {
     </>
   );
 };
+
+export default AddUserModal;

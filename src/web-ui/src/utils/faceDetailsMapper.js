@@ -1,14 +1,16 @@
-export default person => {
+const faceDetailsMapper = (person) => {
   const result = {
     ageLow: person.AgeRange.Low,
     ageHigh: person.AgeRange.High,
     boundingBox: person.BoundingBox,
-    emotions: {}
+    emotions: {},
   };
-  
-  person.Emotions.forEach(emotion => {
+
+  person.Emotions.forEach((emotion) => {
     result.emotions[emotion.Type] = Math.floor(emotion.Confidence);
   });
 
   return result;
 };
+
+export default faceDetailsMapper;

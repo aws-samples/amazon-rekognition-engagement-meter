@@ -1,13 +1,13 @@
 import React from "react";
 import { Table } from "react-bootstrap";
 
-const filterAndSortEmotions = face =>
+const filterAndSortEmotions = (face) =>
   Object.keys(face.emotions)
-    .map(emotion => ({
+    .map((emotion) => ({
       emotion,
-      confidence: face.emotions[emotion]
+      confidence: face.emotions[emotion],
     }))
-    .filter(x => x.confidence > 0)
+    .filter((x) => x.confidence > 0)
     .sort((a, b) => {
       if (a.confidence > b.confidence) {
         return -1;
@@ -16,11 +16,11 @@ const filterAndSortEmotions = face =>
       } else return 0;
     });
 
-export default ({
+const EngagementsSummary = ({
   detectedFaces,
   detectedPeople,
   showFaceBoundingBoxes,
-  webcamCoordinates
+  webcamCoordinates,
 }) => (
   <div>
     {detectedFaces.map((face, index) => (
@@ -38,7 +38,7 @@ export default ({
               top:
                 webcamCoordinates.top +
                 face.boundingBox.Top * webcamCoordinates.height,
-              width: webcamCoordinates.width * face.boundingBox.Width
+              width: webcamCoordinates.width * face.boundingBox.Width,
             }}
           >
             Person #{index + 1}
@@ -68,10 +68,12 @@ export default ({
         </Table>
       </div>
     ))}
-    {detectedPeople.map(person => (
+    {detectedPeople.map((person) => (
       <p key={person.externalImageId}>
         Welcome <b>{person.memberName}</b> ({person.jobTitle})
       </p>
     ))}
   </div>
 );
+
+export default EngagementsSummary;

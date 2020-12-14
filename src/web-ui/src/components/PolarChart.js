@@ -4,10 +4,10 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryPolarAxis,
-  VictoryTheme
+  VictoryTheme,
 } from "victory";
 
-export default props => {
+const PolarChart = (props) => {
   return (
     <VictoryChart
       polar
@@ -20,16 +20,18 @@ export default props => {
       <VictoryArea
         data={props.data}
         style={{
-          data: { fill: "#FF9900" }
+          data: { fill: "#FF9900" },
         }}
       />
       <VictoryPolarAxis
         theme={VictoryTheme.material}
         style={{
           axis: { fill: "none" },
-          tickLabels: { fill: "#fff" }
+          tickLabels: { fill: "#fff" },
         }}
       />
     </VictoryChart>
   );
 };
+
+export default PolarChart;

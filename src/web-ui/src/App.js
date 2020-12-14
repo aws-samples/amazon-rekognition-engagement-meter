@@ -14,13 +14,13 @@ import faceDetailsMapper from "./utils/faceDetailsMapper";
 import getChartData from "./utils/getChartData";
 import gateway from "./utils/gateway";
 
-export default () => {
+const App = () => {
   const [aggregate, setAggregate] = useState({
     angry: 0,
     calm: 0,
     happy: 0,
     sad: 0,
-    surprised: 0
+    surprised: 0,
   });
 
   const [detectedFaces, setDetectedFaces] = useState([]);
@@ -33,7 +33,7 @@ export default () => {
   const people = useRef([]);
   const webcam = useRef(undefined);
 
-  const addUser = params => gateway.addUser(params);
+  const addUser = (params) => gateway.addUser(params);
 
   const getSnapshot = () => {
     setWebcamCoordinates(findDOMNode(webcam.current).getBoundingClientRect());
@@ -41,7 +41,7 @@ export default () => {
     const image = webcam.current.getScreenshot();
     const b64Encoded = image.split(",")[1];
 
-    gateway.getEngagement().then(response => {
+    gateway.getEngagement().then((response) => {
       const chartData = getChartData(response);
 
       if (chartData.happyometer) {
@@ -53,8 +53,8 @@ export default () => {
       }
     });
 
-    gateway.detectFaces(b64Encoded).then(response => {
-      const detectedFaces = response.FaceDetails.map(person => {
+    gateway.detectFaces(b64Encoded).then((response) => {
+      const detectedFaces = response.FaceDetails.map((person) => {
         const result = faceDetailsMapper(person);
         gateway.postEngagement(result).then(() => {});
         return result;
@@ -66,13 +66,13 @@ export default () => {
       }
     });
 
-    gateway.searchFaces(b64Encoded).then(response => {
+    gateway.searchFaces(b64Encoded).then((response) => {
       const detectedPeople = [];
       if (response.FaceMatches) {
-        response.FaceMatches.forEach(match => {
+        response.FaceMatches.forEach((match) => {
           const externalImageId = match.Face.ExternalImageId;
           detectedPeople.push(
-            people.current.find(x => x.externalImageId === externalImageId)
+            people.current.find((x) => x.externalImageId === externalImageId)
           );
         });
       }
@@ -80,7 +80,7 @@ export default () => {
     });
   };
 
-  const setupWebcam = instance => {
+  const setupWebcam = (instance) => {
     webcam.current = instance;
 
     const checkIfReady = () => {
@@ -100,7 +100,7 @@ export default () => {
     iterating.current = !iterating.current;
 
     if (iterating.current) {
-      gateway.getPeople().then(response => {
+      gateway.getPeople().then((response) => {
         people.current = response.people;
         getSnapshot();
       });
@@ -128,7 +128,7 @@ export default () => {
                     videoConstraints={{
                       width: 1280,
                       height: 640,
-                      facingMode: "user"
+                      facingMode: "user",
                     }}
                     width="100%"
                     height="100%"
@@ -138,9 +138,9 @@ export default () => {
                       <Col md={4} sm={3}>
                         <h3>Trends for last hour</h3>
                         <PolarChart
-                          data={Object.keys(aggregate).map(sentiment => ({
+                          data={Object.keys(aggregate).map((sentiment) => ({
                             x: sentiment,
-                            y: aggregate[sentiment]
+                            y: aggregate[sentiment],
                           }))}
                         />
                       </Col>
@@ -174,3 +174,5 @@ export default () => {
     </div>
   );
 };
+
+export default App;

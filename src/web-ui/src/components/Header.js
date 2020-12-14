@@ -4,7 +4,7 @@ import { Nav, Navbar, NavItem } from "react-bootstrap";
 import AddUserModal from "./AddUserModal";
 import RekognitionButton from "./RekognitionButton";
 
-export default props => (
+const Header = (props) => (
   <Navbar inverse collapseOnSelect style={{ backgroundColor: "#000" }}>
     <Navbar.Header>
       <Navbar.Brand>Amazon Rekognition Engagement Meter</Navbar.Brand>
@@ -21,9 +21,14 @@ export default props => (
         </NavItem>
       </Nav>
       <Nav pullRight style={{ paddingTop: "8px" }}>
-        <RekognitionButton onClick={props.toggleRekognition} enabled={props.readyToStream} />
+        <RekognitionButton
+          onClick={props.toggleRekognition}
+          enabled={props.readyToStream}
+        />
         <AddUserModal onSave={props.addUser} />
       </Nav>
     </Navbar.Collapse>
   </Navbar>
 );
+
+export default Header;
