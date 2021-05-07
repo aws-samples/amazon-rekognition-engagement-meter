@@ -29,6 +29,5 @@
   "devDependencies": {
     "js-yaml": "3.13.1",
     "node-yaml": "4.0.1"
-  },
-  "dependencies": {}
+  }
 }
