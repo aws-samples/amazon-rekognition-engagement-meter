@@ -43,7 +43,7 @@ jobs:
       - name: Set up Nodejs 12
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
       - name: Install node dependencies
         run: npm i
       - name: Install python dependencies
