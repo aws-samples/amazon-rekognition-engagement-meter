@@ -12,7 +12,7 @@ Globals:
         CREATE_CLOUDFRONT_DISTRIBUTION: !Ref CreateCloudFrontDistribution
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
-        VERSION: '1.14'
+        VERSION: '1.15'
   Api:
     Cors:
       AllowMethods: "'*'"

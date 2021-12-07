@@ -1,5 +1,5 @@
 import request from "./request";
-import uuid from "uuid/v4";
+import { v4 as uuid } from 'uuid';
 
 const gateway = {
   addUser(params) {

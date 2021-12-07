@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import { findDOMNode } from "react-dom";
 import Webcam from "react-webcam";
-import { HalfCircleMeter } from "react-svg-meters";
 import { Col, Grid, Row } from "react-bootstrap";
+import GaugeChart from "react-gauge-chart";
 
 import CameraHelp from "./components/CameraHelp";
 import EngagementSummary from "./components/EngagementsSummary";
@@ -148,11 +148,12 @@ const App = () => {
                         <h3 style={{ marginBottom: "40px" }}>
                           Engagement Meter
                         </h3>
-                        <HalfCircleMeter
-                          backgroundColor="#fff"
-                          foregroundColor="#FF9900"
-                          value={happyometer}
-                          size={250}
+                        <GaugeChart
+                          id="gauge-chart1"
+                          percent={happyometer / 100}
+                          nrOfLevels={20}
+                          colors={["#FF5F6D", "#FFC371"]}
+                          animate={false}
                         />
                       </Col>
                     </Row>
