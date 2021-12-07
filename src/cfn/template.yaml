@@ -12,7 +12,7 @@ Globals:
         CREATE_CLOUDFRONT_DISTRIBUTION: !Ref CreateCloudFrontDistribution
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
-        VERSION: '1.15'
+        VERSION: '1.16'
   Api:
     Cors:
       AllowMethods: "'*'"
@@ -216,23 +216,26 @@ Resources:
             Action: sts:AssumeRole
       Path: /
       Policies:
-        - PolicyName: RekogDemo-setup-S3-fc
+        - PolicyName: RekogDemo-setup
           PolicyDocument:
             Statement:
             - Effect: Allow
-              Action: s3:*
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+                - s3:DeleteObject
+                - s3:ListBucket
               Resource:
                 - !Sub arn:aws:s3:::${WebUIBucket}
                 - !Sub arn:aws:s3:::${WebUIBucket}/*
-        - PolicyName: RekogDemo-createRekColl
-          PolicyDocument:
-            Statement:
             - Effect: Allow
-              Action: 'rekognition:*'
-              Resource: '*'
-        - PolicyName: RekogDemo-cloudwatch-logs
-          PolicyDocument:
-            Statement:
+              Action: s3:GetObject
+              Resource: !Sub 'arn:aws:s3:::solution-builders-${AWS::Region}/*'
+            - Effect: Allow
+              Action: 
+                - rekognition:CreateCollection
+                - rekognition:DeleteCollection
+              Resource: !Sub arn:aws:rekognition:${AWS::Region}:${AWS::AccountId}:collection/${CollectionId}
             - Effect: Allow
               Action: 'logs:*'
               Resource: 'arn:aws:logs:*:*:*'
