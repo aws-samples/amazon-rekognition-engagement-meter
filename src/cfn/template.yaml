@@ -237,8 +237,13 @@ Resources:
                 - rekognition:DeleteCollection
               Resource: !Sub arn:aws:rekognition:${AWS::Region}:${AWS::AccountId}:collection/${CollectionId}
             - Effect: Allow
-              Action: 'logs:*'
-              Resource: 'arn:aws:logs:*:*:*'
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+                - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
   RestApi:
     Type: AWS::Serverless::Api
     Properties:
