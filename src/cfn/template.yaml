@@ -40,6 +40,12 @@ Outputs:
       - !Sub 'https://${CloudFrontDistribution.DomainName}'
       - !Sub 'https://${WebUIBucket.RegionalDomainName}/index.html'
     Description: Engagement Meter URL
+  settingsJS:
+    Value: !If
+      - WithCloudFront
+      - !Sub https://${CloudFrontDistribution.DomainName}/settings.js
+      - !Sub https://${WebUIBucket}/settings.js
+    Description: App settings.js file
 Resources:
   SetupRekognitionAndWebUI:
     Type: Custom::Setup
