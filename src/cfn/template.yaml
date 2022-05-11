@@ -791,7 +791,7 @@ Resources:
       FunctionName: !Sub RekogDemoSetup${CollectionId}
       Runtime: nodejs14.x
       Handler: index.handler
-      CodeUri: ../functions/setup/
+      CodeUri: ../backend/functions/setup/
       Description: !Sub Custom Lambda resource for the ${CollectionId} Cloudformation Stack
       MemorySize: 128
       Timeout: 30
