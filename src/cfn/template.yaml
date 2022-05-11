@@ -12,7 +12,7 @@ Globals:
         CREATE_CLOUDFRONT_DISTRIBUTION: !Ref CreateCloudFrontDistribution
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
-        VERSION: '1.17'
+        VERSION: '2.0'
   Api:
     Cors:
       AllowMethods: "'*'"
@@ -40,6 +40,12 @@ Outputs:
       - !Sub 'https://${CloudFrontDistribution.DomainName}'
       - !Sub 'https://${WebUIBucket.RegionalDomainName}/index.html'
     Description: Engagement Meter URL
+  settingsJS:
+    Value: !If
+      - WithCloudFront
+      - !Sub https://${CloudFrontDistribution.DomainName}/settings.js
+      - !Sub https://${WebUIBucket}/settings.js
+    Description: App settings.js file
 Resources:
   SetupRekognitionAndWebUI:
     Type: Custom::Setup
@@ -56,6 +62,10 @@ Resources:
           AllowedOrigins: ['*']
           Id: !Sub RekogCorsRule${CollectionId}
           MaxAge: 3600
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
   WebUIBucketReadPolicy:
     Type: AWS::S3::BucketPolicy
     Condition: WithCloudFront
@@ -237,12 +247,17 @@ Resources:
                 - rekognition:DeleteCollection
               Resource: !Sub arn:aws:rekognition:${AWS::Region}:${AWS::AccountId}:collection/${CollectionId}
             - Effect: Allow
-              Action: 'logs:*'
-              Resource: 'arn:aws:logs:*:*:*'
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+                - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
   RestApi:
     Type: AWS::Serverless::Api
-    Name: !Sub RekogDemo-${CollectionId}
     Properties:
+      Name: !Sub RekogDemo-${CollectionId}
       StageName: PROD
       EndpointConfiguration: REGIONAL
       DefinitionBody:
