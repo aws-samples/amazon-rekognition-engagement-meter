@@ -12,7 +12,7 @@ Globals:
         CREATE_CLOUDFRONT_DISTRIBUTION: !Ref CreateCloudFrontDistribution
         REGION: !Ref AWS::Region
         TO_BUCKET: !Ref WebUIBucket
-        VERSION: '1.17'
+        VERSION: '2.0'
   Api:
     Cors:
       AllowMethods: "'*'"
@@ -62,6 +62,10 @@ Resources:
           AllowedOrigins: ['*']
           Id: !Sub RekogCorsRule${CollectionId}
           MaxAge: 3600
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
   WebUIBucketReadPolicy:
     Type: AWS::S3::BucketPolicy
     Condition: WithCloudFront
