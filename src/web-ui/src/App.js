@@ -9,6 +9,7 @@ import EngagementSummary from "./components/EngagementsSummary";
 import Header from "./components/Header";
 import PolarChart from "./components/PolarChart";
 import SettingsHelp from "./components/SettingsHelp";
+import ConsentModal from "./components/ConsentModal";
 
 import faceDetailsMapper from "./utils/faceDetailsMapper";
 import getChartData from "./utils/getChartData";
@@ -114,6 +115,7 @@ const App = () => {
         addUser={addUser}
         readyToStream={readyToStream}
       />
+      <ConsentModal />
       <Grid>
         <SettingsHelp show={!window.rekognitionSettings} />
         <CameraHelp show={!readyToStream} />
