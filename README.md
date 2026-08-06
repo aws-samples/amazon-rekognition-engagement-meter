@@ -1,7 +1,7 @@
 ## Amazon Rekognition Engagement Meter
 
 > [!WARNING]
-> This repository is archived and no longer maintained. It may no longer work, or refer to third-party libraries with known problems.
+> This repository is archived and no longer maintained.
 
 The Engagement Meter is a web application that calculates and displays engagement levels of an audience observed by a webcam. It also includes the capability to recognize attendants by associating their faces to individual user profiles.
 
